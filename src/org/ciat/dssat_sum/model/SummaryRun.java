@@ -3,21 +3,17 @@ package org.ciat.dssat_sum.model;
 import java.util.ArrayList;
 
 public class SummaryRun {
-	private ArrayList<String> section;
-	private ArrayList<String> variables;
+	private ArrayList<Section> sections;
 
-	public SummaryRun(ArrayList<String> section, ArrayList<String> variables) {
+
+	public SummaryRun(ArrayList<Section> sections) {
 		super();
-		this.section = section;
-		this.variables = variables;
 	}
 
-	public ArrayList<String> getSection() {
-		return section;
+	public ArrayList<Section> getSections() {
+		return sections;
 	}
 
-	public ArrayList<String> getVariables() {
-		return variables;
-	}
+
 
 }

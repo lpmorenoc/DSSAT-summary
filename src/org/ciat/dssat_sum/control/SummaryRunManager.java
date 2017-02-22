@@ -9,19 +9,40 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import jdk.nashorn.internal.ir.Terminal;
-
 public class SummaryRunManager {
 	public static String separator = "\t";
 
+	private static List<String> growthVariables;
+
 	public void work() {
 		DecimalFormat nf = new DecimalFormat("000000");
+		growthVariables = new ArrayList<String>();
+		growthVariables.add("Anthesis day (dap)");
+		growthVariables.add("Physiological maturity day (dap) ");
+		growthVariables.add("Yield at harvest maturity (kg [dm]/ha)");
+		growthVariables.add("Number at maturity (no/m2)");
+		growthVariables.add("Unit wt at maturity (g [dm]/unit)");
+		growthVariables.add("Number at maturity (no/unit)");
+		growthVariables.add("Tops weight at maturity (kg [dm]/ha)");
+		growthVariables.add("By-product produced (stalk) at maturity (kg[dm]/ha");
+		growthVariables.add("Leaf area index, maximum");
+		growthVariables.add("Harvest index at maturity");
+		growthVariables.add("Leaf number per stem at maturity");
 
 		PrintWriter writer;
 		try {
 			File master = new File("summary" + ".csv");
 			writer = new PrintWriter(master);
-			writer.println("Corrida No" + separator + "TR" + separator + "End Juv" + separator + "Flor ini" + separator + "75%" + separator + "Beg g f" + separator + "End g f" + separator + "Mat" + separator + "Har" + separator + "# Leaf a m");
+			String head = "Corrida No" + separator + "TR" + separator + "End Juv" + separator + "Flor ini" + separator + "75%" + separator + "Beg g f" + separator + "End g f" + separator + "Mat" + separator + "Har" + separator;
+
+			for (String var : growthVariables) {
+				var=var.replaceAll(",", "");
+				var=var.replaceAll("\t", "");
+				head += var + separator;
+				head += "Observed " + var + separator;
+			}
+			System.out.println(head);
+			writer.println(head);
 			boolean flagFile = true;
 			boolean flagFolder = true;
 			for (int folder = 0; flagFolder; folder++) {
@@ -89,12 +110,17 @@ public class SummaryRunManager {
 				}
 					break;
 				case GROWTH: {
-					if (line.contains("Leaf number per stem at maturity")) {
-						cadena += line.substring(57, 64);
+
+					for (String var : growthVariables) {
+						if (line.contains(var)) {
+							cadena += line.substring(57, 64) + separator;
+							cadena += line.substring(69, 77) + separator;
+						}
 					}
 					if (line.contains("----------------------------------------------------------------------------------------------------------------------------------------------------------------")) {
 						flag = fileSection.END;
 						runs.add(cadena);
+						System.out.println(cadena);
 					}
 				}
 				case END: {
