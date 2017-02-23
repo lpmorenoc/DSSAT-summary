@@ -10,38 +10,131 @@ import java.util.List;
 import java.util.Scanner;
 
 public class SummaryRunManager {
-	public static String separator = "\t";
 
-	private static List<String> growthVariables;
+	private String separator = "\t";
+	private List<String> growthVariables;
+	private List<String> cropNSoilVariables;
+
+	public enum fileSection {
+		INIT, CROP_N_SOIL, GROWTH, END
+	};
 
 	public void work() {
 		DecimalFormat nf = new DecimalFormat("000000");
+		cropNSoilVariables = new ArrayList<String>();
 		growthVariables = new ArrayList<String>();
-		growthVariables.add("Anthesis day (dap)");
-		growthVariables.add("Physiological maturity day (dap) ");
-		growthVariables.add("Yield at harvest maturity (kg [dm]/ha)");
-		growthVariables.add("Number at maturity (no/m2)");
-		growthVariables.add("Unit wt at maturity (g [dm]/unit)");
-		growthVariables.add("Number at maturity (no/unit)");
-		growthVariables.add("Tops weight at maturity (kg [dm]/ha)");
-		growthVariables.add("By-product produced (stalk) at maturity (kg[dm]/ha");
-		growthVariables.add("Leaf area index, maximum");
-		growthVariables.add("Harvest index at maturity");
-		growthVariables.add("Leaf number per stem at maturity");
+
+		String model = "BN";
+
+		File firstCultivarOutput = new File("0\\000000\\" + "OVERVIEW.OUT");
+		Scanner reader;
+		try {
+			reader = new Scanner(firstCultivarOutput);
+			String line="";
+			fileSection flag=fileSection.INIT;
+			while (flag==fileSection.INIT && reader.hasNextLine()) {
+				line = reader.nextLine();
+				if (line.contains("EXPERIMENT")) {
+					model = line.substring(27, 29) + separator;
+					flag=fileSection.END;
+				}
+
+			}
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		System.out.println(model);
+
+		switch (model) {
+		case "BN": {
+			cropNSoilVariables.add("Emergence");
+			cropNSoilVariables.add("End Juven");
+			cropNSoilVariables.add("Flower Ind");
+			cropNSoilVariables.add("First Flwr");
+			cropNSoilVariables.add("First Pod");
+			cropNSoilVariables.add("First Seed");
+			cropNSoilVariables.add("End Pod");
+			cropNSoilVariables.add("Phys. Mat");
+			cropNSoilVariables.add("Maturity");
+			cropNSoilVariables.add("End Leaf");
+			cropNSoilVariables.add("Harv. Mat");
+			cropNSoilVariables.add("Harvest");
+			growthVariables.add("Anthesis day (dap)");
+			growthVariables.add("Physiological maturity day (dap) ");
+			growthVariables.add("Yield at harvest maturity (kg [dm]/ha)");
+			growthVariables.add("Number at maturity (no/m2)");
+			growthVariables.add("Unit wt at maturity (g [dm]/unit)");
+			growthVariables.add("Number at maturity (no/unit)");
+			growthVariables.add("Tops weight at maturity (kg [dm]/ha)");
+			growthVariables.add("By-product produced (stalk) at maturity (kg[dm]/ha");
+			growthVariables.add("Leaf area index, maximum");
+			growthVariables.add("Harvest index at maturity");
+			growthVariables.add("Leaf number per stem at maturity");
+
+		}
+
+			break;
+		case "MZ": {
+			cropNSoilVariables.add("End Juveni");
+			cropNSoilVariables.add("Floral Ini");
+			cropNSoilVariables.add("Silkin");
+			cropNSoilVariables.add("End Gr Fil");
+			cropNSoilVariables.add("Maturity");
+			cropNSoilVariables.add("Harvest");
+			growthVariables.add("Anthesis day (dap)");
+			growthVariables.add("Physiological maturity day (dap) ");
+			growthVariables.add("Yield at harvest maturity (kg [dm]/ha)");
+			growthVariables.add("Number at maturity (no/m2)");
+			growthVariables.add("Unit wt at maturity (g [dm]/unit)");
+			growthVariables.add("Number at maturity (no/unit)");
+			growthVariables.add("Tops weight at maturity (kg [dm]/ha)");
+			growthVariables.add("By-product produced (stalk) at maturity (kg[dm]/ha");
+			growthVariables.add("Leaf area index, maximum");
+			growthVariables.add("Harvest index at maturity");
+			growthVariables.add("Leaf number per stem at maturity");
+
+		}
+			break;
+		default: {
+			cropNSoilVariables.add("End Juven");
+			cropNSoilVariables.add("Floral I");
+			cropNSoilVariables.add("Maturity");
+			cropNSoilVariables.add("Harvest");
+			growthVariables.add("Anthesis day (dap)");
+			growthVariables.add("Physiological maturity day (dap) ");
+			growthVariables.add("Yield at harvest maturity (kg [dm]/ha)");
+			growthVariables.add("Number at maturity (no/m2)");
+			growthVariables.add("Unit wt at maturity (g [dm]/unit)");
+			growthVariables.add("Number at maturity (no/unit)");
+			growthVariables.add("Tops weight at maturity (kg [dm]/ha)");
+			growthVariables.add("By-product produced (stalk) at maturity (kg[dm]/ha");
+			growthVariables.add("Leaf area index, maximum");
+			growthVariables.add("Harvest index at maturity");
+			growthVariables.add("Leaf number per stem at maturity");
+		}
+		}
 
 		PrintWriter writer;
 		try {
 			File master = new File("summary" + ".csv");
 			writer = new PrintWriter(master);
-			String head = "Corrida No" + separator + "TR" + separator + "End Juv" + separator + "Flor ini" + separator + "75%" + separator + "Beg g f" + separator + "End g f" + separator + "Mat" + separator + "Har" + separator;
+			String head = "Corrida No" + separator + "TR" + separator;
+
+			for (String var : cropNSoilVariables) {
+				var = var.replaceAll(",", "");
+				var = var.replaceAll(separator, "");
+				head += var + separator;
+			}
 
 			for (String var : growthVariables) {
-				var=var.replaceAll(",", "");
-				var=var.replaceAll("\t", "");
+				var = var.replaceAll(",", "");
+				var = var.replaceAll(separator, "");
 				head += var + separator;
 				head += "Observed " + var + separator;
 			}
-			System.out.println(head);
+
 			writer.println(head);
 			boolean flagFile = true;
 			boolean flagFolder = true;
@@ -72,10 +165,6 @@ public class SummaryRunManager {
 
 	}
 
-	public enum fileSection {
-		INIT, CROP_N_SOIL, GROWTH, END
-	};
-
 	private List<String> getCultivarVariables(File cultivarOutput) {
 		Scanner reader;
 		List<String> runs = new ArrayList<String>();
@@ -101,8 +190,11 @@ public class SummaryRunManager {
 				}
 					break;
 				case CROP_N_SOIL: {
-					if (line.contains("End Juveni") || line.contains("Floral Ini") || line.contains("Silkin") || line.contains("Beg Gr Fil") || line.contains("End Gr Fil") || line.contains("Maturity") || line.contains("Harvest")) {
-						cadena += line.substring(7, 12) + separator;
+
+					for (String var : cropNSoilVariables) {
+						if (line.contains(var)) {
+							cadena += line.substring(7, 12) + separator;
+						}
 					}
 					if (line.contains("*MAIN GROWTH AND DEVELOPMENT VARIABLES")) {
 						flag = fileSection.GROWTH;
@@ -120,7 +212,6 @@ public class SummaryRunManager {
 					if (line.contains("----------------------------------------------------------------------------------------------------------------------------------------------------------------")) {
 						flag = fileSection.END;
 						runs.add(cadena);
-						System.out.println(cadena);
 					}
 				}
 				case END: {
