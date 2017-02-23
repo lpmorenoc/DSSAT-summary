@@ -45,7 +45,6 @@ public class SummaryRunManager {
 			e.printStackTrace();
 		}
 
-		System.out.println(model);
 
 		switch (model) {
 		case "BN": {
