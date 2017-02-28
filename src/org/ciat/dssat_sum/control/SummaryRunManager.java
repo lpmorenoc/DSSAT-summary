@@ -35,7 +35,7 @@ public class SummaryRunManager {
 			while (flag==fileSection.INIT && reader.hasNextLine()) {
 				line = reader.nextLine();
 				if (line.contains("EXPERIMENT")) {
-					model = line.substring(27, 29) + separator;
+					model = line.substring(27, 29);
 					flag=fileSection.END;
 				}
 
@@ -44,8 +44,7 @@ public class SummaryRunManager {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
-
+		
 		switch (model) {
 		case "BN": {
 			cropNSoilVariables.add("Emergence");
@@ -97,6 +96,7 @@ public class SummaryRunManager {
 		}
 			break;
 		default: {
+			System.out.println("Crop not found: "+model);
 			cropNSoilVariables.add("End Juven");
 			cropNSoilVariables.add("Floral I");
 			cropNSoilVariables.add("Maturity");
