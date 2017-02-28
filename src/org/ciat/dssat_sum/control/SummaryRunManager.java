@@ -55,7 +55,6 @@ public class SummaryRunManager {
 			cropNSoilVariables.add("First Seed");
 			cropNSoilVariables.add("End Pod");
 			cropNSoilVariables.add("Phys. Mat");
-			cropNSoilVariables.add("Maturity");
 			cropNSoilVariables.add("End Leaf");
 			cropNSoilVariables.add("Harv. Mat");
 			cropNSoilVariables.add("Harvest");
@@ -193,6 +192,7 @@ public class SummaryRunManager {
 					for (String var : cropNSoilVariables) {
 						if (line.contains(var)) {
 							cadena += line.substring(7, 12) + separator;
+							System.out.println(var+" "+line.substring(7, 12));
 						}
 					}
 					if (line.contains("*MAIN GROWTH AND DEVELOPMENT VARIABLES")) {
