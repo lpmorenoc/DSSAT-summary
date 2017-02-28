@@ -6,14 +6,19 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class SummaryRunManager {
 
 	private String separator = "\t";
+	private String model = "BN";
+	private Map<String, String> outputVarsValues =new LinkedHashMap<>();;
 	private List<String> growthVariables;
 	private List<String> cropNSoilVariables;
+	private String OBSERVED_TAG = "Observed ";
 
 	public enum fileSection {
 		INIT, CROP_N_SOIL, GROWTH, END
@@ -24,27 +29,65 @@ public class SummaryRunManager {
 		cropNSoilVariables = new ArrayList<String>();
 		growthVariables = new ArrayList<String>();
 
-		String model = "BN";
+		model = obtainModel();
 
-		File firstCultivarOutput = new File("0\\000000\\" + "OVERVIEW.OUT");
-		Scanner reader;
+		populateVariables();
+
+
+
+		PrintWriter writer;
 		try {
-			reader = new Scanner(firstCultivarOutput);
-			String line="";
-			fileSection flag=fileSection.INIT;
-			while (flag==fileSection.INIT && reader.hasNextLine()) {
-				line = reader.nextLine();
-				if (line.contains("EXPERIMENT")) {
-					model = line.substring(27, 29);
-					flag=fileSection.END;
-				}
+			File master = new File("summary" + ".csv");
+			writer = new PrintWriter(master);
+			String head = "Corrida No" + separator + "TR" + separator;
 
+			for (String var : cropNSoilVariables) {
+				outputVarsValues.put(var, "");
+				var = var.replaceAll(",", "");
+				var = var.replaceAll(separator, "");
+				head += var + separator;
 			}
-			reader.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+
+			for (String var : growthVariables) {
+				outputVarsValues.put(var, "");
+				outputVarsValues.put(OBSERVED_TAG + var, "");
+				var = var.replaceAll(",", "");
+				var = var.replaceAll(separator, "");
+				head += var + separator;
+				head += OBSERVED_TAG + var + separator;
+			}
+
+			writer.println(head);
+			boolean flagFile = true;
+			boolean flagFolder = true;
+			for (int folder = 0; flagFolder; folder++) {
+				if ((new File(folder + "\\" + nf.format(folder))).exists()) {
+					for (int cultivar = 0; flagFile; cultivar++) {
+						File cultivarOutput = new File(folder + "\\" + nf.format(cultivar) + "\\" + "OVERVIEW.OUT");
+						if (cultivarOutput.exists()) {
+
+							for (String cadena : getCultivarVariables(cultivarOutput)) {
+								writer.println(cadena);
+							}
+							writer.flush();
+
+						} else {
+							flagFile = false;
+						}
+					}
+				} else {
+					flagFolder = false;
+				}
+			}
+
+			writer.close();
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
-		
+
+	}
+
+	private void populateVariables() {
 		switch (model) {
 		case "BN": {
 			cropNSoilVariables.add("Emergence");
@@ -95,10 +138,9 @@ public class SummaryRunManager {
 		}
 			break;
 		default: {
-			System.out.println("Crop not found: "+model);
+			System.out.println("Crop not found: " + model);
 			cropNSoilVariables.add("End Juven");
 			cropNSoilVariables.add("Floral I");
-			cropNSoilVariables.add("Maturity");
 			cropNSoilVariables.add("Harvest");
 			growthVariables.add("Anthesis day (dap)");
 			growthVariables.add("Physiological maturity day (dap) ");
@@ -114,75 +156,51 @@ public class SummaryRunManager {
 		}
 		}
 
-		PrintWriter writer;
+	}
+
+	private String obtainModel() {
+		String model = "BN";
+		File firstCultivarOutput = new File("0\\000000\\" + "OVERVIEW.OUT");
+		Scanner reader;
 		try {
-			File master = new File("summary" + ".csv");
-			writer = new PrintWriter(master);
-			String head = "Corrida No" + separator + "TR" + separator;
-
-			for (String var : cropNSoilVariables) {
-				var = var.replaceAll(",", "");
-				var = var.replaceAll(separator, "");
-				head += var + separator;
-			}
-
-			for (String var : growthVariables) {
-				var = var.replaceAll(",", "");
-				var = var.replaceAll(separator, "");
-				head += var + separator;
-				head += "Observed " + var + separator;
-			}
-
-			writer.println(head);
-			boolean flagFile = true;
-			boolean flagFolder = true;
-			for (int folder = 0; flagFolder; folder++) {
-				if ((new File(folder + "\\" + nf.format(folder))).exists()) {
-					for (int cultivar = 0; flagFile; cultivar++) {
-						File cultivarOutput = new File(folder + "\\" + nf.format(cultivar) + "\\" + "OVERVIEW.OUT");
-						if (cultivarOutput.exists()) {
-
-							for (String cadena : getCultivarVariables(cultivarOutput)) {
-								writer.println(cadena);
-							}
-							writer.flush();
-
-						} else {
-							flagFile = false;
-						}
-					}
-				} else {
-					flagFolder = false;
+			reader = new Scanner(firstCultivarOutput);
+			String line = "";
+			fileSection flag = fileSection.INIT;
+			while (flag == fileSection.INIT && reader.hasNextLine()) {
+				line = reader.nextLine();
+				if (line.contains("EXPERIMENT")) {
+					model = line.substring(27, 29);
+					flag = fileSection.END;
 				}
+
 			}
-
-			writer.close();
-		} catch (IOException e1) {
-			e1.printStackTrace();
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 		}
-
+		return model;
 	}
 
 	private List<String> getCultivarVariables(File cultivarOutput) {
+
 		Scanner reader;
-		List<String> runs = new ArrayList<String>();
+		List<String> runsOutput = new ArrayList<String>();
 		String cadena = "";
 		String line = "";
 		fileSection flag = fileSection.INIT;
 		int treatment = 0;
-
 		try {
 			reader = new Scanner(cultivarOutput);
-			while (reader.hasNextLine()) {
+			while (reader.hasNextLine()) { // reading the whole file
 				line = reader.nextLine();
 
 				switch (flag) {
 				case INIT: {
-					if (line.contains("*RUN")) {
+					if (line.contains("*RUN")) { // to detect each single run of a treatment
 						treatment = Integer.parseInt(line.substring(7, 10).replaceAll(" ", ""));
-						cadena = cultivarOutput.getParent() + separator + treatment + separator;
+						cadena = cultivarOutput.getParent() + separator + treatment + separator; // to print experiment run ID and the treatment
 					}
-					if (line.contains("*SIMULATED CROP AND SOIL STATUS AT MAIN DEVELOPMENT STAGES")) {
+					if (line.contains("*SIMULATED CROP AND SOIL STATUS AT MAIN DEVELOPMENT STAGES")) { // detect section
 						flag = fileSection.CROP_N_SOIL;
 					}
 				}
@@ -191,11 +209,10 @@ public class SummaryRunManager {
 
 					for (String var : cropNSoilVariables) {
 						if (line.contains(var)) {
-							cadena += line.substring(7, 12) + separator;
-							System.out.println(var+" "+line.substring(7, 12));
+							outputVarsValues.put(var, line.substring(7, 12)); // get value
 						}
 					}
-					if (line.contains("*MAIN GROWTH AND DEVELOPMENT VARIABLES")) {
+					if (line.contains("*MAIN GROWTH AND DEVELOPMENT VARIABLES")) { // detect section
 						flag = fileSection.GROWTH;
 					}
 				}
@@ -204,18 +221,26 @@ public class SummaryRunManager {
 
 					for (String var : growthVariables) {
 						if (line.contains(var)) {
-							cadena += line.substring(57, 64) + separator;
-							cadena += line.substring(69, 77) + separator;
+							outputVarsValues.put(var, line.substring(57, 64)); // get simulated value
+							outputVarsValues.put(OBSERVED_TAG + var, line.substring(69, 77)); // get observed value
+
 						}
 					}
+					// to detect the end of the treatment run
 					if (line.contains("----------------------------------------------------------------------------------------------------------------------------------------------------------------")) {
 						flag = fileSection.END;
-						runs.add(cadena);
+						for (String key : outputVarsValues.keySet()) {
+							cadena += outputVarsValues.get(key) + separator;
+						}
+						runsOutput.add(cadena);
 					}
 				}
 				case END: {
-					if (line.contains("*DSSAT Cropping System Model")) {
+					if (line.contains("*DSSAT Cropping System Model")) { // detect the start of a new treatment run
 						flag = fileSection.INIT;
+						for (String key : outputVarsValues.keySet()) {
+							cadena += outputVarsValues.put(key, ""); // clear the previous values to recycle the Map
+						}
 					}
 
 				}
@@ -229,7 +254,7 @@ public class SummaryRunManager {
 			e.printStackTrace();
 		}
 
-		return runs;
+		return runsOutput;
 	}
 
 }
