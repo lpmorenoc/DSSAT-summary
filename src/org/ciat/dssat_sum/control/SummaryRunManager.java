@@ -99,7 +99,7 @@ public class SummaryRunManager {
 
 	private void populateVariables() {
 		switch (model) {
-		case "BN": {
+		case "CRGRO046 - Dry bean ": {
 			cropNSoilVariables.add("Emergence");
 			cropNSoilVariables.add("End Juven");
 			cropNSoilVariables.add("Flower Ind");
@@ -126,7 +126,7 @@ public class SummaryRunManager {
 		}
 
 			break;
-		case "MZ": {
+		case "MZCER046 - Maize    ": {
 			cropNSoilVariables.add("End Juveni");
 			cropNSoilVariables.add("Floral Ini");
 			cropNSoilVariables.add("Silkin");
@@ -169,8 +169,8 @@ public class SummaryRunManager {
 	}
 
 	private String obtainModel() {
-		String model = "BN";
-		File firstCultivarOutput = new File("0\\000000\\" + "OVERVIEW.OUT");
+		String model = "MZCER046 - Maize";
+		File firstCultivarOutput =new File (((new File("0")).listFiles()[0].getAbsolutePath()+"\\OVERVIEW.OUT"));
 		Scanner reader;
 		try {
 			if(firstCultivarOutput.exists()){
@@ -179,8 +179,8 @@ public class SummaryRunManager {
 				fileSection flag = fileSection.INIT;
 				while (flag == fileSection.INIT && reader.hasNextLine()) {
 					line = reader.nextLine();
-					if (line.contains("EXPERIMENT")) {
-						model = line.substring(27, 29);
+					if (line.contains("MODEL          :")) {
+						model = line.substring(18, 38);
 						flag = fileSection.END;
 					}
 	
@@ -190,6 +190,7 @@ public class SummaryRunManager {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+		System.out.println(model);
 		return model;
 	}
 
