@@ -1,11 +1,14 @@
 package org.ciat.dssat_sum.control;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +38,16 @@ public class SummaryRunManager {
 
 
 
-		PrintWriter writer;
+		PrintWriter pwriter;
+		BufferedWriter bwriter;
 		try {
-			File master = new File("summary" + ".csv");
-			writer = new PrintWriter(master);
+			long yourmilliseconds = System.currentTimeMillis();
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");    
+			Date resultdate = new Date(yourmilliseconds);
+			
+			File master = new File("summary_"+ sdf.format(resultdate) + ".csv");
+			pwriter = new PrintWriter(master);
+			bwriter = new BufferedWriter(pwriter);
 			String head = "Corrida No" + separator + "TR" + separator;
 
 			for (String var : cropNSoilVariables) {
@@ -57,30 +66,31 @@ public class SummaryRunManager {
 				head += OBSERVED_TAG + var + separator;
 			}
 
-			writer.println(head);
+			bwriter.write(head);
+			bwriter.newLine();
 			boolean flagFile = true;
 			boolean flagFolder = true;
-			for (int folder = 0; flagFolder; folder++) {
-				if ((new File(folder + "\\" + nf.format(folder))).exists()) {
-					for (int cultivar = 0; flagFile; cultivar++) {
-						File cultivarOutput = new File(folder + "\\" + nf.format(cultivar) + "\\" + "OVERVIEW.OUT");
-						if (cultivarOutput.exists()) {
+			for (int folder = 0; flagFolder & flagFile; folder++) {
+				File bigFolder = new File(folder + "\\");
+				if (bigFolder.exists()) {
+					flagFile=false;
+					for (File subFolder:bigFolder.listFiles()) {
 
-							for (String cadena : getCultivarVariables(cultivarOutput)) {
-								writer.println(cadena);
+						flagFile = true;
+						File cultivarOutput = new File(subFolder.getAbsolutePath()+"\\OVERVIEW.OUT");
+								for (String cadena : getCultivarVariables(cultivarOutput)) {
+									bwriter.write(cadena);
+									bwriter.newLine();
+								}
 							}
-							writer.flush();
+							bwriter.flush();
 
-						} else {
-							flagFile = false;
-						}
-					}
 				} else {
 					flagFolder = false;
 				}
 			}
-
-			writer.close();
+			pwriter.close();
+			bwriter.close();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -163,18 +173,20 @@ public class SummaryRunManager {
 		File firstCultivarOutput = new File("0\\000000\\" + "OVERVIEW.OUT");
 		Scanner reader;
 		try {
-			reader = new Scanner(firstCultivarOutput);
-			String line = "";
-			fileSection flag = fileSection.INIT;
-			while (flag == fileSection.INIT && reader.hasNextLine()) {
-				line = reader.nextLine();
-				if (line.contains("EXPERIMENT")) {
-					model = line.substring(27, 29);
-					flag = fileSection.END;
+			if(firstCultivarOutput.exists()){
+				reader = new Scanner(firstCultivarOutput);
+				String line = "";
+				fileSection flag = fileSection.INIT;
+				while (flag == fileSection.INIT && reader.hasNextLine()) {
+					line = reader.nextLine();
+					if (line.contains("EXPERIMENT")) {
+						model = line.substring(27, 29);
+						flag = fileSection.END;
+					}
+	
 				}
-
+				reader.close();
 			}
-			reader.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
