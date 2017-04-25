@@ -177,6 +177,9 @@ public class SummaryRunManager {
 			growthVariables.add("HarvestIndex (ratio)");
 			growthVariables.add("Maximum leaf area index");
 			growthVariables.add("Final leaf number (one axis)");
+			growthVariables.add("Product unit wt (g dm)");
+			growthVariables.add("Product number (/m2)");
+			growthVariables.add("Product number (/shoot)");
 
 		}
 			break;
