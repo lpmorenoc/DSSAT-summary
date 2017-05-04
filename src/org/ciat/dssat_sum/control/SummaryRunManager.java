@@ -340,7 +340,7 @@ public class SummaryRunManager {
 	 */
 	public List<File> getCassavaOverviewFiles() {
 		// Change the Path
-		String path = "//home//lpmorenoc//cassava_dssat//minimo//Outputs//";
+		String path = "//ufrc//hoogenboom//lpmorenoc//cassava_dssat//Outputs//";
 
 		String files;
 		File folder = new File(path);
