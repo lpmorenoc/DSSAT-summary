@@ -207,7 +207,7 @@ public class SummaryRunManager {
 	private String obtainModel() {
 		String model = "CSCGR046 - Cassava";
 		
-		File firstCultivarOutput = new File("C:\\Users\\User\\Desktop\\outputs\\Overview1.OUT");
+		File firstCultivarOutput = new File("//ufrc//hoogenboom//lpmorenoc//cassava_dssat//Outputs//Overview1.OUT");
 		Scanner reader;
 		try {
 			if (firstCultivarOutput.exists()) {
