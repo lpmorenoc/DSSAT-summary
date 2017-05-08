@@ -5,7 +5,7 @@ import java.util.List;
 public class Section {
 	
 	private String name;
-	private List<Variable> variables;
+	private List<SerieVariable> variables;
 
 	public String getName() {
 		return name;
@@ -15,11 +15,11 @@ public class Section {
 		this.name = name;
 	}
 
-	public List<Variable> getVariables() {
+	public List<SerieVariable> getVariables() {
 		return variables;
 	}
 
-	public void setVariables(List<Variable> variables) {
+	public void setVariables(List<SerieVariable> variables) {
 		this.variables = variables;
 	}
 }

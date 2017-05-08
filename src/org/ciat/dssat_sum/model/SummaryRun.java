@@ -9,12 +9,14 @@ public class SummaryRun {
 	public final String PATH_SEPARATOR = "\\";
 	private File overviewOutput;
 	private File summaryOutput;
+	private String fileT;
 
-	public SummaryRun(String model, String runName) {
+	public SummaryRun(String model, String runName, String fileT) {
 		super();
 		this.setModel(model);
-		this.overviewOutput = new File("overview-"+runName+".csv");
-		this.summaryOutput = new File("summary-"+runName+".csv");
+		this.overviewOutput = new File("overview_"+runName+".csv");
+		this.summaryOutput = new File("summary_"+runName+".csv");
+		this.setFileT(fileT);
 	}
 
 	
@@ -34,6 +36,18 @@ public class SummaryRun {
 
 	public File getSummaryOutput() {
 		return summaryOutput;
+	}
+
+
+
+	public String getFileT() {
+		return fileT;
+	}
+
+
+
+	public void setFileT(String fileT) {
+		this.fileT = fileT;
 	}
 
 

@@ -5,15 +5,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.logging.Logger;
-
 import org.ciat.dssat_sum.model.SummaryRun;
 
 public class OverviewWorker {
@@ -22,7 +18,7 @@ public class OverviewWorker {
 	private Map<String, String> outputVarsValues;
 	private List<String> growthVariables;
 	private List<String> cropNSoilVariables;
-	private String OBSERVED_TAG = "Observed ";
+	private final String MEASURED_PREFIX = "Measured ";
 	private SummaryRun run;
 	
 
@@ -55,7 +51,7 @@ public class OverviewWorker {
 			bwriter = new BufferedWriter(pwriter);
 			
 			/* Building the header */
-			String head = "Corrida No" + run.LINE_SEPARATOR + "TR" + run.LINE_SEPARATOR;
+			String head = "CULTIVAR" + run.LINE_SEPARATOR + "TR" + run.LINE_SEPARATOR;
 
 			for (String var : cropNSoilVariables) {
 				outputVarsValues.put(var, "");
@@ -66,17 +62,17 @@ public class OverviewWorker {
 
 			for (String var : growthVariables) {
 				outputVarsValues.put(var, "");
-				outputVarsValues.put(OBSERVED_TAG + var, "");
+				outputVarsValues.put(MEASURED_PREFIX + var, "");
 				var = var.replaceAll(",", "");
 				var = var.replaceAll(run.LINE_SEPARATOR, "");
 				head += var + run.LINE_SEPARATOR;
-				head += OBSERVED_TAG + var + run.LINE_SEPARATOR;
+				head += MEASURED_PREFIX + var + run.LINE_SEPARATOR;
 			}
 
 			bwriter.write(head);
+			bwriter.newLine();
 			/* END building the header **/
 			
-			bwriter.newLine();
 			boolean flagFolder = true;
 			for (int folder = 0; flagFolder; folder++) {
 				File bigFolder = new File(folder + run.PATH_SEPARATOR);
@@ -158,7 +154,7 @@ public class OverviewWorker {
 		}
 			break;
 		default: {
-			App.LOG.warning("Crop not found: " + run.getModel());
+			App.LOG.warning("Crop not configurated for overview: " + run.getModel()+", using default variables");
 			cropNSoilVariables.add("End Juven");
 			cropNSoilVariables.add("Floral I");
 			cropNSoilVariables.add("Harvest");
@@ -224,7 +220,7 @@ public class OverviewWorker {
 					for (String var : growthVariables) {
 						if (line.contains(var)) {
 							outputVarsValues.put(var, line.substring(57, 64)); // get simulated value
-							outputVarsValues.put(OBSERVED_TAG + var, line.substring(69, 77)); // get observed value
+							outputVarsValues.put(MEASURED_PREFIX + var, line.substring(69, 77)); // get observed value
 
 						}
 					}
@@ -255,5 +251,6 @@ public class OverviewWorker {
 
 		return runsOutput;
 	}
+
 
 }
