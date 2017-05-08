@@ -1,19 +1,21 @@
 package org.ciat.dssat_sum.control;
 
-import java.io.File;
 
-import org.ciat.dssat_sum.control.SummaryRunManager;
+import org.ciat.dssat_sum.control.OverviewWorker;
+import org.ciat.dssat_sum.model.SummaryRun;
 
 public class RunConfig {
+	
 
-	public SummaryRunManager getExtractionManager(File config) {
-		
-		//ArrayList<String> section = new ArrayList<String>();
-		//ArrayList<String> variables = new ArrayList<String>();
-		
-		
-		// SummaryRun run= new SummaryRun(section,variables);
-		return new SummaryRunManager();
+	public OverviewWorker getOverviewWorker(SummaryRun run) {
+
+		return new OverviewWorker(run);
 	}
+
+	public SeriesWorker getSeriesWorker(SummaryRun run) {
+		return new SeriesWorker(run);
+	}
+
+
 
 }

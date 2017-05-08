@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -13,80 +12,91 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
-public class SummaryRunManager {
+import org.ciat.dssat_sum.model.SummaryRun;
 
-	private String separator = "\t";
-	private String model = "BN";
-	private Map<String, String> outputVarsValues =new LinkedHashMap<>();;
+public class OverviewWorker {
+
+
+	private Map<String, String> outputVarsValues;
 	private List<String> growthVariables;
 	private List<String> cropNSoilVariables;
 	private String OBSERVED_TAG = "Observed ";
+	private SummaryRun run;
+	
 
 	public enum fileSection {
 		INIT, CROP_N_SOIL, GROWTH, END
 	};
 
+	public OverviewWorker(SummaryRun summaryRun) {
+		this.run = summaryRun;
+	}
+
 	public void work() {
-		DecimalFormat nf = new DecimalFormat("000000");
+		
 		cropNSoilVariables = new ArrayList<String>();
 		growthVariables = new ArrayList<String>();
+		outputVarsValues =new LinkedHashMap<>();
 
-		model = obtainModel();
+
 
 		populateVariables();
-
 
 
 		PrintWriter pwriter;
 		BufferedWriter bwriter;
 		try {
-			long yourmilliseconds = System.currentTimeMillis();
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");    
-			Date resultdate = new Date(yourmilliseconds);
 			
-			File master = new File("summary_"+ sdf.format(resultdate) + ".csv");
+			
+			File master = run.getOverviewOutput();
 			pwriter = new PrintWriter(master);
 			bwriter = new BufferedWriter(pwriter);
-			String head = "Corrida No" + separator + "TR" + separator;
+			
+			/* Building the header */
+			String head = "Corrida No" + run.LINE_SEPARATOR + "TR" + run.LINE_SEPARATOR;
 
 			for (String var : cropNSoilVariables) {
 				outputVarsValues.put(var, "");
 				var = var.replaceAll(",", "");
-				var = var.replaceAll(separator, "");
-				head += var + separator;
+				var = var.replaceAll(run.LINE_SEPARATOR, "");
+				head += var + run.LINE_SEPARATOR;
 			}
 
 			for (String var : growthVariables) {
 				outputVarsValues.put(var, "");
 				outputVarsValues.put(OBSERVED_TAG + var, "");
 				var = var.replaceAll(",", "");
-				var = var.replaceAll(separator, "");
-				head += var + separator;
-				head += OBSERVED_TAG + var + separator;
+				var = var.replaceAll(run.LINE_SEPARATOR, "");
+				head += var + run.LINE_SEPARATOR;
+				head += OBSERVED_TAG + var + run.LINE_SEPARATOR;
 			}
 
 			bwriter.write(head);
+			/* END building the header **/
+			
 			bwriter.newLine();
-			boolean flagFile = true;
 			boolean flagFolder = true;
-			for (int folder = 0; flagFolder & flagFile; folder++) {
-				File bigFolder = new File(folder + "\\");
+			for (int folder = 0; flagFolder; folder++) {
+				File bigFolder = new File(folder + run.PATH_SEPARATOR);
 				if (bigFolder.exists()) {
-					flagFile=false;
-					for (File subFolder:bigFolder.listFiles()) {
-
-						flagFile = true;
-						File cultivarOutput = new File(subFolder.getAbsolutePath()+"\\OVERVIEW.OUT");
-								for (String cadena : getCultivarVariables(cultivarOutput)) {
-									bwriter.write(cadena);
+					for (File subFolder:bigFolder.listFiles()) { // for each subfolder
+						File cultivarOutput = new File(subFolder.getAbsolutePath()+run.PATH_SEPARATOR+"OVERVIEW.OUT"); // look at the overview.out file
+						if (cultivarOutput.exists()) {
+								for (String cadena : getCultivarVariables(cultivarOutput)) { // for each cultivar get all the simulated and observed values
+									bwriter.write(cadena); // print the values
 									bwriter.newLine();
 								}
-							}
-							bwriter.flush();
+								
+						}else {
+							App.LOG.warning(subFolder+run.PATH_SEPARATOR+cultivarOutput.getName()+" not found");
+						}
+					}
+					bwriter.flush();
 
 				} else {
-					flagFolder = false;
+					flagFolder = false; // Flag that there are no more folders search in 
 				}
 			}
 			pwriter.close();
@@ -98,7 +108,7 @@ public class SummaryRunManager {
 	}
 
 	private void populateVariables() {
-		switch (model) {
+		switch (run.getModel()) {
 		case "CRGRO046 - Dry bean ": {
 			cropNSoilVariables.add("Emergence");
 			cropNSoilVariables.add("End Juven");
@@ -148,7 +158,7 @@ public class SummaryRunManager {
 		}
 			break;
 		default: {
-			System.out.println("Crop not found: " + model);
+			App.LOG.warning("Crop not found: " + run.getModel());
 			cropNSoilVariables.add("End Juven");
 			cropNSoilVariables.add("Floral I");
 			cropNSoilVariables.add("Harvest");
@@ -168,32 +178,8 @@ public class SummaryRunManager {
 
 	}
 
-	private String obtainModel() {
-		String model = "MZCER046 - Maize";
-		File firstCultivarOutput =new File (((new File("0")).listFiles()[0].getAbsolutePath()+"\\OVERVIEW.OUT"));
-		Scanner reader;
-		try {
-			if(firstCultivarOutput.exists()){
-				reader = new Scanner(firstCultivarOutput);
-				String line = "";
-				fileSection flag = fileSection.INIT;
-				while (flag == fileSection.INIT && reader.hasNextLine()) {
-					line = reader.nextLine();
-					if (line.contains("MODEL          :")) {
-						model = line.substring(18, 38);
-						flag = fileSection.END;
-					}
-	
-				}
-				reader.close();
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		System.out.println(model);
-		return model;
-	}
 
+	/* obtain all the simulated and observed values of the variables populated in both cropNSoilVariables and growthVariables */
 	private List<String> getCultivarVariables(File cultivarOutput) {
 
 		Scanner reader;
@@ -211,7 +197,7 @@ public class SummaryRunManager {
 				case INIT: {
 					if (line.contains("*RUN")) { // to detect each single run of a treatment
 						treatment = Integer.parseInt(line.substring(7, 10).replaceAll(" ", ""));
-						cadena = cultivarOutput.getParent() + separator + treatment + separator; // to print experiment run ID and the treatment
+						cadena = cultivarOutput.getParent() + run.LINE_SEPARATOR + treatment + run.LINE_SEPARATOR; // to print experiment run ID and the treatment
 						for (String key : outputVarsValues.keySet()) {
 							outputVarsValues.put(key, ""); // clear the previous values to recycle the Map
 						}
@@ -246,7 +232,7 @@ public class SummaryRunManager {
 					if (line.contains("----------------------------------------------------------------------------------------------------------------------------------------------------------------")) {
 						flag = fileSection.END;
 						for (String key : outputVarsValues.keySet()) {
-							cadena += outputVarsValues.get(key) + separator;
+							cadena += outputVarsValues.get(key) + run.LINE_SEPARATOR;
 						}
 						runsOutput.add(cadena);
 					}
