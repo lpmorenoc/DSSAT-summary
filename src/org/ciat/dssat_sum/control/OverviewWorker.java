@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+
 import org.ciat.dssat_sum.model.SummaryRun;
 
 public class OverviewWorker {
@@ -23,7 +24,7 @@ public class OverviewWorker {
 	
 
 	public enum fileSection {
-		INIT, CROP_N_SOIL, GROWTH, END
+		INIT(), CROP_N_SOIL, GROWTH, END
 	};
 
 	public OverviewWorker(SummaryRun summaryRun) {
@@ -73,20 +74,21 @@ public class OverviewWorker {
 			bwriter.newLine();
 			/* END building the header **/
 			
+			/* Search on each OVERVIEW.OUT file from 0/ folder and further */
 			boolean flagFolder = true;
 			for (int folder = 0; flagFolder; folder++) {
 				File bigFolder = new File(folder + run.PATH_SEPARATOR);
 				if (bigFolder.exists()) {
 					for (File subFolder:bigFolder.listFiles()) { // for each subfolder
-						File cultivarOutput = new File(subFolder.getAbsolutePath()+run.PATH_SEPARATOR+"OVERVIEW.OUT"); // look at the overview.out file
-						if (cultivarOutput.exists()) {
-								for (String cadena : getCultivarVariables(cultivarOutput)) { // for each cultivar get all the simulated and observed values
+						File output = new File(subFolder.getAbsolutePath()+run.PATH_SEPARATOR+"OVERVIEW.OUT"); // look at the overview.out file
+						if (output.exists()) {
+								for (String cadena : getCultivarVariables(output)) { // for each cultivar get all the simulated and observed values
 									bwriter.write(cadena); // print the values
 									bwriter.newLine();
 								}
 								
 						}else {
-							App.LOG.warning(subFolder+run.PATH_SEPARATOR+cultivarOutput.getName()+" not found");
+							App.LOG.warning(subFolder+run.PATH_SEPARATOR+output.getName()+" not found");
 						}
 					}
 					bwriter.flush();
@@ -95,6 +97,8 @@ public class OverviewWorker {
 					flagFolder = false; // Flag that there are no more folders search in 
 				}
 			}
+			
+			
 			pwriter.close();
 			bwriter.close();
 		} catch (IOException e1) {
@@ -105,7 +109,7 @@ public class OverviewWorker {
 
 	private void populateVariables() {
 		switch (run.getModel()) {
-		case "CRGRO046 - Dry bean ": {
+		case BEAN: {
 			cropNSoilVariables.add("Emergence");
 			cropNSoilVariables.add("End Juven");
 			cropNSoilVariables.add("Flower Ind");
@@ -132,7 +136,7 @@ public class OverviewWorker {
 		}
 
 			break;
-		case "MZCER046 - Maize    ": {
+		case MAIZE: {
 			cropNSoilVariables.add("End Juveni");
 			cropNSoilVariables.add("Floral Ini");
 			cropNSoilVariables.add("Silkin");
@@ -252,5 +256,30 @@ public class OverviewWorker {
 		return runsOutput;
 	}
 
+	@Deprecated
+	public static String obtainModel() {
+		String model = "MZCER046 - Maize";
+		File firstCultivarOutput = new File(((new File("0")).listFiles()[0].getAbsolutePath() + "\\OVERVIEW.OUT"));
+		Scanner reader;
+		try {
+			if (firstCultivarOutput.exists()) {
+				reader = new Scanner(firstCultivarOutput);
+				String line = "";
+				fileSection flag = fileSection.INIT;
+				while (flag == fileSection.INIT && reader.hasNextLine()) {
+					line = reader.nextLine();
+					if (line.contains("MODEL          :")) {
+						model = line.substring(18, 38);
+						flag = fileSection.END;
+					}
 
+				}
+				reader.close();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		App.LOG.info("Detected model: " + model);
+		return model;
+	}
 }

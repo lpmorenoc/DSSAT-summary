@@ -1,5 +1,6 @@
 package org.ciat.dssat_sum.control;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,7 +32,7 @@ public class App {
 		
 		LOG.fine("work started");
 		
-		rc.loadConfig("config.txt");
+		rc.loadConfig(new File("config.txt"));
 
 		owrk = rc.getOverviewWorker();
 		owrk.work();

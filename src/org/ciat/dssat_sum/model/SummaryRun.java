@@ -4,7 +4,7 @@ import java.io.File;
 
 public class SummaryRun {
 
-	private String model;
+	private ModelCode model;
 	public final String LINE_SEPARATOR = "\t";
 	public final String PATH_SEPARATOR = "\\";
 	private File overviewOutput;
@@ -13,7 +13,7 @@ public class SummaryRun {
 
 	public SummaryRun(String model, String runName, String fileT) {
 		super();
-		this.setModel(model);
+		this.setModel(ModelCode.getModelCode(model));
 		this.overviewOutput = new File("overview_"+runName+".csv");
 		this.summaryOutput = new File("summary_"+runName+".csv");
 		this.setFileT(fileT);
@@ -21,11 +21,11 @@ public class SummaryRun {
 
 	
 
-	public String getModel() {
+	public ModelCode getModel() {
 		return model;
 	}
 
-	public void setModel(String model) {
+	public void setModel(ModelCode model) {
 		this.model = model;
 	}
 
