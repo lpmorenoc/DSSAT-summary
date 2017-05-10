@@ -73,14 +73,13 @@ public class SeriesWorker {
 											for (Measurement msimule : simulationTreatment.getSamplings()) {
 
 												if (msample.getDate().equals(msimule.getDate())) { // when dates matches
+													bwriter.write(subFolder + run.LINE_SEPARATOR);
 													bwriter.write(msample.getDate() + run.LINE_SEPARATOR);
 													bwriter.write(sampleTreatment.getNumber() + run.LINE_SEPARATOR);
 
 													for (Variable v : msimule.getValues().keySet()) {
 														bwriter.write(msample.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);
-														bwriter.write(msimule.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);
-														bwriter.write("");
-													}
+														bwriter.write(msimule.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);												}
 													bwriter.newLine();
 
 												}
