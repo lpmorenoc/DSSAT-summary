@@ -14,12 +14,10 @@ public class SummaryRun {
 	public SummaryRun(String model, String runName, String fileT) {
 		super();
 		this.setModel(ModelCode.getModelCode(model));
-		this.overviewOutput = new File("overview_"+runName+".csv");
-		this.summaryOutput = new File("summary_"+runName+".csv");
+		this.overviewOutput = new File(runName+"_overview.csv");
+		this.summaryOutput = new File(runName+"_summary.csv");
 		this.setFileT(fileT);
 	}
-
-	
 
 	public ModelCode getModel() {
 		return model;

@@ -64,7 +64,7 @@ public class App {
 			logger.removeHandler(handler);
 		}
 		try {
-			fileHandler = new FileHandler("log_" + runName + ".log");
+			fileHandler = new FileHandler(runName + "_summary.log");
 			consoleHandler = new ConsoleHandler();
 			fileHandler.setLevel(Level.FINE);
 			consoleHandler.setLevel(Level.FINE);

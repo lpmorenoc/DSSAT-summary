@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Scanner;
 import java.util.Set;
@@ -22,6 +21,7 @@ public class SeriesWorker {
 
 	private static final String MEASURED_PREFIX = "M-";
 	private static final String SIMULATED_PREFIX = "S-";
+	private static final SimpleDateFormat  sdf = new SimpleDateFormat("yyyyMMdd");
 	private Set<VariableLocation> variables;
 
 	private SummaryRun run;
@@ -36,12 +36,9 @@ public class SeriesWorker {
 		Set<Treatment> samplings = getSampleMeasurements();
 		Set<Treatment> simulations = new LinkedHashSet<>();
 
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
 
 		File master = run.getSummaryOutput();
-		try(BufferedWriter bwriter = new BufferedWriter(new PrintWriter(master))) {
-			
-			
+		try (BufferedWriter bwriter = new BufferedWriter(new PrintWriter(master))) {
 
 			/* Building the header */
 			String head = "CULTIVAR" + run.LINE_SEPARATOR + "TR" + run.LINE_SEPARATOR;
@@ -55,44 +52,45 @@ public class SeriesWorker {
 			bwriter.newLine();
 			/* END building the header **/
 
-			/* Search on each PlanGro.OUT file from 0/ folder and further */
+			/* Search on each run the PlanGro.OUT file from 0/ folder and further */
 			boolean flagFolder = true;
 			for (int folder = 0; flagFolder; folder++) {
 				File bigFolder = new File(folder + run.PATH_SEPARATOR);
 				if (bigFolder.exists()) {
 					for (File subFolder : bigFolder.listFiles()) { // for each subfolder
 						// look at the overview.out file
-						File output = new File(subFolder.getAbsolutePath() + run.PATH_SEPARATOR + "OVERVIEW.OUT");
+						File output = new File(subFolder.getAbsolutePath() + run.PATH_SEPARATOR + "PlantGro.OUT");
 						if (output.exists()) {
-							simulations = printWithSimulations(output);
+							simulations = getSimulatedMeasurements(output); // get simulated values for that run
 
+							// print full file 
 							for (Treatment sampleTreatment : samplings) {
 								for (Treatment simulationTreatment : simulations) {
 
-									if (sampleTreatment == simulationTreatment) {
-									
+									if (sampleTreatment.equals(simulationTreatment)) { // when treatments matches
+
 										for (Measurement msample : sampleTreatment.getSamplings()) {
 											for (Measurement msimule : simulationTreatment.getSamplings()) {
 
-												if (msample.getDate() == msimule.getDate()) {
-													bwriter.write(sdf.format(msample.getDate())+run.LINE_SEPARATOR);
-													
-													for(Variable v: msimule.getValues().keySet()){
-														bwriter.write(sdf.format(msample.getValues().get(v).doubleValue())+run.LINE_SEPARATOR);
-														bwriter.write(sdf.format(msimule.getValues().get(v).doubleValue())+run.LINE_SEPARATOR);
+												if (msample.getDate().equals(msimule.getDate())) { // when dates matches
+													bwriter.write(msample.getDate() + run.LINE_SEPARATOR);
+													bwriter.write(sampleTreatment.getNumber() + run.LINE_SEPARATOR);
+
+													for (Variable v : msimule.getValues().keySet()) {
+														bwriter.write(msample.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);
+														bwriter.write(msimule.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);
 														bwriter.write("");
 													}
 													bwriter.newLine();
-													
+
 												}
 											}
 										}
 
 									}
 								}
-								//bwriter.flush();
+								// bwriter.flush();
 							}
-							
 
 						} else {
 							App.LOG.warning(subFolder + run.PATH_SEPARATOR + output.getName() + " not found");
@@ -105,8 +103,8 @@ public class SeriesWorker {
 				}
 			}
 
-			//pwriter.close();
-			//bwriter.close();
+			// pwriter.close();
+			// bwriter.close();
 		} catch (FileNotFoundException e) {
 			App.LOG.severe("File not found " + master.getAbsolutePath());
 		} catch (IOException e) {
@@ -115,20 +113,19 @@ public class SeriesWorker {
 
 	}
 
-	private Set<Treatment> printWithSimulations(File plantGro) {
+	private Set<Treatment> getSimulatedMeasurements(File plantGro) {
 		Set<Treatment> treatments = new LinkedHashSet<>();
-		Scanner reader;
+		
 		String line = "";
 		String[] numbers;
 		Treatment t = new Treatment(-1);
-		Measurement m = new Measurement(new Date());
+		Measurement m = new Measurement("");
 		int doy = 0;
 		int year = 0;
 		Calendar calendar = Calendar.getInstance();
 
-		try {
-			if (plantGro.exists()) {
-				reader = new Scanner(plantGro);
+		if (plantGro.exists()) {
+			try (Scanner reader = new Scanner(plantGro)) {
 				while (reader.hasNextLine()) {
 					line = reader.nextLine();
 					line = line.trim();
@@ -154,8 +151,11 @@ public class SeriesWorker {
 
 						calendar.set(Calendar.DAY_OF_YEAR, doy);
 						calendar.set(Calendar.YEAR, year);
+						calendar.set(Calendar.HOUR, 0);
+						calendar.set(Calendar.MINUTE, 0);
+						calendar.set(Calendar.SECOND, 0);
 
-						m = new Measurement(calendar.getTime());
+						m = new Measurement(sdf.format(calendar.getTime()));
 						for (VariableLocation vl : variables) {
 							m.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexPlantGro()]));
 						}
@@ -165,13 +165,13 @@ public class SeriesWorker {
 
 				}
 
-				reader.close();
-			} else {
-				App.LOG.warning("File not found " + plantGro.getAbsolutePath());
-			}
+				//reader.close();
 
-		} catch (FileNotFoundException e) {
-			App.LOG.severe("File not found as " + plantGro.getAbsolutePath());
+			} catch (FileNotFoundException e) {
+				App.LOG.severe("File not found as " + plantGro.getAbsolutePath());
+			}
+		} else {
+			App.LOG.warning("File not found " + plantGro.getAbsolutePath());
 		}
 
 		return treatments;
@@ -185,7 +185,7 @@ public class SeriesWorker {
 		String line = "";
 		String[] numbers;
 		Treatment t = new Treatment(-1);
-		Measurement m = new Measurement(new Date());
+		Measurement m = new Measurement("");
 		int doy = 0;
 		int year = 0;
 		Calendar calendar = Calendar.getInstance();
@@ -221,7 +221,11 @@ public class SeriesWorker {
 
 						calendar.set(Calendar.DAY_OF_YEAR, doy);
 						calendar.set(Calendar.YEAR, year);
-						m = new Measurement(calendar.getTime());
+						calendar.set(Calendar.HOUR, 0);
+						calendar.set(Calendar.MINUTE, 0);
+						calendar.set(Calendar.SECOND, 0);
+						
+						m = new Measurement(sdf.format(calendar.getTime()));
 						for (VariableLocation vl : variables) {
 							m.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexFileT()]));
 						}
@@ -254,11 +258,11 @@ public class SeriesWorker {
 
 			break;
 		case MAIZE: {
-			vars.add(new VariableLocation(new Variable("LAID"), 2, 7));
-			vars.add(new VariableLocation(new Variable("CWAD"), 3, 13));
-			vars.add(new VariableLocation(new Variable("LWAD"), 4, 8));
-			vars.add(new VariableLocation(new Variable("GWAD"), 5, 10));
-			vars.add(new VariableLocation(new Variable("HAID"), 6, 16));
+			vars.add(new VariableLocation(new Variable("LAID"), 2, 6));
+			vars.add(new VariableLocation(new Variable("CWAD"), 3, 12));
+			vars.add(new VariableLocation(new Variable("LWAD"), 4, 7));
+			vars.add(new VariableLocation(new Variable("GWAD"), 5, 9));
+			vars.add(new VariableLocation(new Variable("HAID"), 6, 15));
 		}
 			break;
 		default: {

@@ -1,26 +1,25 @@
 package org.ciat.dssat_sum.model;
 
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class Measurement {
 	
-	private Date date;
+	private String date;
 	private Map<Variable, Double> values;
 
-	public Measurement(Date date) {
+	public Measurement(String date) {
 		super();
 		this.date = date;
 		this.values = new LinkedHashMap<Variable, Double>();
 	}
 
-	public Date getDate() {
+	public String getDate() {
 		return date;
 	}
 
-	public void setDate(Date date) {
+	public void setDate(String date) {
 		this.date = date;
 	}
 
