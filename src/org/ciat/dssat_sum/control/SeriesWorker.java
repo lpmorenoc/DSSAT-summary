@@ -41,7 +41,7 @@ public class SeriesWorker {
 		try (BufferedWriter bwriter = new BufferedWriter(new PrintWriter(master))) {
 
 			/* Building the header */
-			String head = "CULTIVAR" + run.LINE_SEPARATOR + "TR" + run.LINE_SEPARATOR;
+			String head = "RUN" + run.LINE_SEPARATOR + "DATE" + run.LINE_SEPARATOR + "TR" + run.LINE_SEPARATOR;
 
 			for (VariableLocation var : variables) {
 				head += MEASURED_PREFIX + var.getVariable().getName() + run.LINE_SEPARATOR;
@@ -71,7 +71,7 @@ public class SeriesWorker {
 
 										for (Measurement msample : sampleTreatment.getSamplings()) {
 											for (Measurement msimule : simulationTreatment.getSamplings()) {
-
+												
 												if (msample.getDate().equals(msimule.getDate())) { // when dates matches
 													bwriter.write(subFolder + run.LINE_SEPARATOR);
 													bwriter.write(msample.getDate() + run.LINE_SEPARATOR);
@@ -80,7 +80,7 @@ public class SeriesWorker {
 													for (Variable v : msimule.getValues().keySet()) {
 														bwriter.write(msample.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);
 														bwriter.write(msimule.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);												}
-													bwriter.newLine();
+														bwriter.newLine();
 
 												}
 											}
@@ -204,7 +204,7 @@ public class SeriesWorker {
 					numbers = line.split(" ");
 					if (numbers.length > 0 && isNumeric(numbers[0])) {
 
-						if (t != new Treatment(Integer.parseInt(numbers[0]))) {
+						if (!t.equals(new Treatment(Integer.parseInt(numbers[0])))) {
 							t = new Treatment(Integer.parseInt(numbers[0]));
 						}
 						// obtain two digits of the year
