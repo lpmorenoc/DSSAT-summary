@@ -22,9 +22,9 @@ public class RunConfig {
 		Date resultdate = new Date(yourmilliseconds);
 		String runName = sdf.format(resultdate);
 		
-		Scanner reader;
-		try {
-			reader = new Scanner(config);
+		
+		try(Scanner reader = new Scanner(config)) {
+			
 			String modelName = reader.nextLine();
 			String modelShortName = reader.nextLine();
 			String fileA = reader.nextLine();
@@ -39,7 +39,7 @@ public class RunConfig {
 			
 			run = new SummaryRun(modelShortName, runName, fileT);
 			
-			reader.close();
+			//reader.close();
 		} catch (FileNotFoundException e) {
 			App.LOG.severe("Configuration not found in: "+ config.getAbsolutePath());
 		}catch (Exception e) {

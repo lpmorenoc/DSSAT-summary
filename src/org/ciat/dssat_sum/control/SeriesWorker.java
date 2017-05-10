@@ -36,14 +36,12 @@ public class SeriesWorker {
 		Set<Treatment> samplings = getSampleMeasurements();
 		Set<Treatment> simulations = new LinkedHashSet<>();
 
-		PrintWriter pwriter;
-		BufferedWriter bwriter;
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
 
 		File master = run.getSummaryOutput();
-		try {
-			pwriter = new PrintWriter(master);
-			bwriter = new BufferedWriter(pwriter);
+		try(BufferedWriter bwriter = new BufferedWriter(new PrintWriter(master))) {
+			
+			
 
 			/* Building the header */
 			String head = "CULTIVAR" + run.LINE_SEPARATOR + "TR" + run.LINE_SEPARATOR;
@@ -66,7 +64,7 @@ public class SeriesWorker {
 						// look at the overview.out file
 						File output = new File(subFolder.getAbsolutePath() + run.PATH_SEPARATOR + "OVERVIEW.OUT");
 						if (output.exists()) {
-							simulations = getSimulatedMeasurements(output);
+							simulations = printWithSimulations(output);
 
 							for (Treatment sampleTreatment : samplings) {
 								for (Treatment simulationTreatment : simulations) {
@@ -74,15 +72,17 @@ public class SeriesWorker {
 									if (sampleTreatment == simulationTreatment) {
 									
 										for (Measurement msample : sampleTreatment.getSamplings()) {
-											for (Measurement mule : simulationTreatment.getSamplings()) {
+											for (Measurement msimule : simulationTreatment.getSamplings()) {
 
-												if (msample.getDate() == mule.getDate()) {
+												if (msample.getDate() == msimule.getDate()) {
 													bwriter.write(sdf.format(msample.getDate())+run.LINE_SEPARATOR);
 													
-													for(Variable v: mule.getValues().keySet()){
-													//TODO
+													for(Variable v: msimule.getValues().keySet()){
+														bwriter.write(sdf.format(msample.getValues().get(v).doubleValue())+run.LINE_SEPARATOR);
+														bwriter.write(sdf.format(msimule.getValues().get(v).doubleValue())+run.LINE_SEPARATOR);
 														bwriter.write("");
 													}
+													bwriter.newLine();
 													
 												}
 											}
@@ -90,7 +90,9 @@ public class SeriesWorker {
 
 									}
 								}
+								//bwriter.flush();
 							}
+							
 
 						} else {
 							App.LOG.warning(subFolder + run.PATH_SEPARATOR + output.getName() + " not found");
@@ -103,8 +105,8 @@ public class SeriesWorker {
 				}
 			}
 
-			pwriter.close();
-			bwriter.close();
+			//pwriter.close();
+			//bwriter.close();
 		} catch (FileNotFoundException e) {
 			App.LOG.severe("File not found " + master.getAbsolutePath());
 		} catch (IOException e) {
@@ -113,7 +115,7 @@ public class SeriesWorker {
 
 	}
 
-	private Set<Treatment> getSimulatedMeasurements(File plantGro) {
+	private Set<Treatment> printWithSimulations(File plantGro) {
 		Set<Treatment> treatments = new LinkedHashSet<>();
 		Scanner reader;
 		String line = "";

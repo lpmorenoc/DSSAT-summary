@@ -38,19 +38,13 @@ public class OverviewWorker {
 		outputVarsValues =new LinkedHashMap<>();
 
 
-
 		populateVariables();
 
+		File master = run.getOverviewOutput();
+		
+		try(BufferedWriter bwriter = new BufferedWriter(new PrintWriter(master))) {
 
-		PrintWriter pwriter;
-		BufferedWriter bwriter;
-		try {
-			
-			
-			File master = run.getOverviewOutput();
-			pwriter = new PrintWriter(master);
-			bwriter = new BufferedWriter(pwriter);
-			
+						
 			/* Building the header */
 			String head = "CULTIVAR" + run.LINE_SEPARATOR + "TR" + run.LINE_SEPARATOR;
 
@@ -91,7 +85,7 @@ public class OverviewWorker {
 							App.LOG.warning(subFolder+run.PATH_SEPARATOR+output.getName()+" not found");
 						}
 					}
-					bwriter.flush();
+					//bwriter.flush();
 
 				} else {
 					flagFolder = false; // Flag that there are no more folders search in 
@@ -99,8 +93,8 @@ public class OverviewWorker {
 			}
 			
 			
-			pwriter.close();
-			bwriter.close();
+			//pwriter.close();
+			//bwriter.close();
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -182,14 +176,13 @@ public class OverviewWorker {
 	/* obtain all the simulated and observed values of the variables populated in both cropNSoilVariables and growthVariables */
 	private List<String> getCultivarVariables(File cultivarOutput) {
 
-		Scanner reader;
 		List<String> runsOutput = new ArrayList<String>();
 		String cadena = "";
 		String line = "";
 		fileSection flag = fileSection.INIT;
 		int treatment = 0;
-		try {
-			reader = new Scanner(cultivarOutput);
+		try(Scanner reader = new Scanner(cultivarOutput)) {
+			
 			while (reader.hasNextLine()) { // reading the whole file
 				line = reader.nextLine();
 
@@ -248,7 +241,7 @@ public class OverviewWorker {
 					break;
 				}
 			}
-			reader.close();
+			//reader.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
