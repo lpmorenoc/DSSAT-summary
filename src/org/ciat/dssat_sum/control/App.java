@@ -36,9 +36,10 @@ public class App {
 
 		owrk = rc.getOverviewWorker();
 		owrk.work();
-
+		LOG.fine("overview.csv created");
 		swrk = rc.getSeriesWorker();
 		swrk.work();
+		LOG.fine("summary.csv created");
 
 		LOG.fine("work finished");
 		

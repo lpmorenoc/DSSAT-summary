@@ -13,6 +13,7 @@ import java.util.Set;
 import org.ciat.dssat_sum.model.VariableLocation;
 import org.ciat.dssat_sum.model.Measurement;
 import org.ciat.dssat_sum.model.ModelCode;
+import org.ciat.dssat_sum.model.ProgressBar;
 import org.ciat.dssat_sum.model.SummaryRun;
 import org.ciat.dssat_sum.model.Treatment;
 import org.ciat.dssat_sum.model.Variable;
@@ -21,7 +22,7 @@ public class SeriesWorker {
 
 	private static final String MEASURED_PREFIX = "M-";
 	private static final String SIMULATED_PREFIX = "S-";
-	private static final SimpleDateFormat  sdf = new SimpleDateFormat("yyyyMMdd");
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 	private Set<VariableLocation> variables;
 
 	private SummaryRun run;
@@ -35,7 +36,8 @@ public class SeriesWorker {
 		variables = getVariables(run.getModel());
 		Set<Treatment> samplings = getSampleMeasurements();
 		Set<Treatment> simulations = new LinkedHashSet<>();
-
+		ProgressBar bar = new ProgressBar();
+		int subFolderNumber = 0;
 
 		File master = run.getSummaryOutput();
 		try (BufferedWriter bwriter = new BufferedWriter(new PrintWriter(master))) {
@@ -56,14 +58,18 @@ public class SeriesWorker {
 			boolean flagFolder = true;
 			for (int folder = 0; flagFolder; folder++) {
 				File bigFolder = new File(folder + run.PATH_SEPARATOR);
+				subFolderNumber = 0;
 				if (bigFolder.exists()) {
+					bar = new ProgressBar();
+					System.out.println("Getting summary on folder " + bigFolder.getName());
+					bar.update(0, bigFolder.listFiles().length);
 					for (File subFolder : bigFolder.listFiles()) { // for each subfolder
 						// look at the overview.out file
 						File output = new File(subFolder.getAbsolutePath() + run.PATH_SEPARATOR + "PlantGro.OUT");
 						if (output.exists()) {
 							simulations = getSimulatedMeasurements(output); // get simulated values for that run
 
-							// print full file 
+							// print full file
 							for (Treatment sampleTreatment : samplings) {
 								for (Treatment simulationTreatment : simulations) {
 
@@ -71,7 +77,7 @@ public class SeriesWorker {
 
 										for (Measurement msample : sampleTreatment.getSamplings()) {
 											for (Measurement msimule : simulationTreatment.getSamplings()) {
-												
+
 												if (msample.getDate().equals(msimule.getDate())) { // when dates matches
 													bwriter.write(subFolder + run.LINE_SEPARATOR);
 													bwriter.write(msample.getDate() + run.LINE_SEPARATOR);
@@ -79,8 +85,9 @@ public class SeriesWorker {
 
 													for (Variable v : msimule.getValues().keySet()) {
 														bwriter.write(msample.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);
-														bwriter.write(msimule.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);												}
-														bwriter.newLine();
+														bwriter.write(msimule.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);
+													}
+													bwriter.newLine();
 
 												}
 											}
@@ -94,11 +101,14 @@ public class SeriesWorker {
 						} else {
 							App.LOG.warning(subFolder + run.PATH_SEPARATOR + output.getName() + " not found");
 						}
+
+						bar.update(subFolderNumber++, bigFolder.listFiles().length);
+
 					}
 
 				} else {
 					flagFolder = false; // Flag that there are no more folders search in
-					App.LOG.fine("Finished gathering data");
+					App.LOG.fine("Finished gathering simulated results");
 				}
 			}
 
@@ -114,7 +124,7 @@ public class SeriesWorker {
 
 	private Set<Treatment> getSimulatedMeasurements(File plantGro) {
 		Set<Treatment> treatments = new LinkedHashSet<>();
-		
+
 		String line = "";
 		String[] numbers;
 		Treatment t = new Treatment(-1);
@@ -164,7 +174,7 @@ public class SeriesWorker {
 
 				}
 
-				//reader.close();
+				// reader.close();
 
 			} catch (FileNotFoundException e) {
 				App.LOG.severe("File not found as " + plantGro.getAbsolutePath());
@@ -183,7 +193,8 @@ public class SeriesWorker {
 		Scanner reader;
 		String line = "";
 		String[] numbers;
-		Treatment t = new Treatment(-1);
+		Treatment treatment = new Treatment(-1);
+		Treatment newTreatment = new Treatment(-1);
 		Measurement m = new Measurement("");
 		int doy = 0;
 		int year = 0;
@@ -203,9 +214,9 @@ public class SeriesWorker {
 
 					numbers = line.split(" ");
 					if (numbers.length > 0 && isNumeric(numbers[0])) {
-
-						if (!t.equals(new Treatment(Integer.parseInt(numbers[0])))) {
-							t = new Treatment(Integer.parseInt(numbers[0]));
+						newTreatment = new Treatment(Integer.parseInt(numbers[0]));
+						if (!treatment.equals(newTreatment)) {
+							treatment = newTreatment;
 						}
 						// obtain two digits of the year
 						year = Integer.parseInt(numbers[1].charAt(0) + "" + numbers[1].charAt(1));
@@ -223,13 +234,13 @@ public class SeriesWorker {
 						calendar.set(Calendar.HOUR, 0);
 						calendar.set(Calendar.MINUTE, 0);
 						calendar.set(Calendar.SECOND, 0);
-						
+
 						m = new Measurement(sdf.format(calendar.getTime()));
 						for (VariableLocation vl : variables) {
 							m.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexFileT()]));
 						}
-						t.getSamplings().add(m);
-						treatments.add(t);
+						treatment.getSamplings().add(m);
+						treatments.add(treatment);
 
 					}
 

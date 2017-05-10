@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.ciat.dssat_sum.model.ProgressBar;
 import org.ciat.dssat_sum.model.SummaryRun;
 
 public class OverviewWorker {
@@ -36,6 +37,8 @@ public class OverviewWorker {
 		cropNSoilVariables = new ArrayList<String>();
 		growthVariables = new ArrayList<String>();
 		outputVarsValues =new LinkedHashMap<>();
+		ProgressBar bar = new ProgressBar();
+		int subFolderNumber = 0;
 
 
 		populateVariables();
@@ -73,6 +76,9 @@ public class OverviewWorker {
 			for (int folder = 0; flagFolder; folder++) {
 				File bigFolder = new File(folder + run.PATH_SEPARATOR);
 				if (bigFolder.exists()) {
+					bar = new ProgressBar();
+					System.out.println("Getting overwiew on folder " + bigFolder.getName());
+					bar.update(0, bigFolder.listFiles().length);
 					for (File subFolder:bigFolder.listFiles()) { // for each subfolder
 						File output = new File(subFolder.getAbsolutePath()+run.PATH_SEPARATOR+"OVERVIEW.OUT"); // look at the overview.out file
 						if (output.exists()) {
@@ -84,11 +90,13 @@ public class OverviewWorker {
 						}else {
 							App.LOG.warning(subFolder+run.PATH_SEPARATOR+output.getName()+" not found");
 						}
+						bar.update(subFolderNumber++, bigFolder.listFiles().length);
 					}
 					//bwriter.flush();
 
 				} else {
 					flagFolder = false; // Flag that there are no more folders search in 
+					App.LOG.fine("Finished gathering overwiew results");
 				}
 			}
 			
