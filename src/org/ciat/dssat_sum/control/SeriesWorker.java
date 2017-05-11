@@ -37,7 +37,7 @@ public class SeriesWorker {
 		Set<Treatment> samplings = getSampleMeasurements();
 		Set<Treatment> simulations = new LinkedHashSet<>();
 		ProgressBar bar = new ProgressBar();
-		int subFolderNumber = 0;
+		int subFolderIndex = 0;
 
 		File master = run.getSummaryOutput();
 		try (BufferedWriter bwriter = new BufferedWriter(new PrintWriter(master))) {
@@ -58,11 +58,12 @@ public class SeriesWorker {
 			boolean flagFolder = true;
 			for (int folder = 0; flagFolder; folder++) {
 				File bigFolder = new File(folder + run.PATH_SEPARATOR);
-				subFolderNumber = 0;
+				subFolderIndex = 0;
 				if (bigFolder.exists()) {
 					bar = new ProgressBar();
 					System.out.println("Getting summary on folder " + bigFolder.getName());
-					bar.update(0, bigFolder.listFiles().length);
+
+					int subFoderTotal = bigFolder.listFiles().length;;
 					for (File subFolder : bigFolder.listFiles()) { // for each subfolder
 						// look at the overview.out file
 						File output = new File(subFolder.getAbsolutePath() + run.PATH_SEPARATOR + "PlantGro.OUT");
@@ -101,10 +102,14 @@ public class SeriesWorker {
 						} else {
 							App.LOG.warning(subFolder + run.PATH_SEPARATOR + output.getName() + " not found");
 						}
-
-						bar.update(subFolderNumber++, bigFolder.listFiles().length);
+						
+						subFolderIndex++;
+						if (subFolderIndex % 100 == 0) {
+							bar.update(subFolderIndex, subFoderTotal);
+						}
 
 					}
+					bar.update(subFoderTotal-1, subFoderTotal);
 
 				} else {
 					flagFolder = false; // Flag that there are no more folders search in

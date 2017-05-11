@@ -26,6 +26,7 @@ public class ProgressBar {
     public void update(int done, int total) {
         char[] workchars = {'|', '/', '-', '\\'};
         String format = "\r%3d%% %s %c";
+        total= total<1?1:total;
 
         int percent = (++done * 100) / total;
         int extrachars = (percent / 2) - this.progress.length();
