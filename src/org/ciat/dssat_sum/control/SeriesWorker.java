@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.Scanner;
@@ -17,13 +16,14 @@ import org.ciat.dssat_sum.model.ModelCode;
 import org.ciat.dssat_sum.model.ProgressBar;
 import org.ciat.dssat_sum.model.SummaryRun;
 import org.ciat.dssat_sum.model.Treatment;
+import org.ciat.dssat_sum.model.Utils;
 import org.ciat.dssat_sum.model.Variable;
 
 public class SeriesWorker {
 
 
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // ISO 8601
-	private Set<VariableLocation> variables;
+	
+	private Set<VariableLocation> locations;
 
 	private SummaryRun run;
 
@@ -33,7 +33,7 @@ public class SeriesWorker {
 
 	public void work() {
 
-		variables = getVariables(run.getModel());
+		locations = getVariables(run.getModel());
 		Set<Treatment> samplings = getSampleMeasurements();
 		Set<Treatment> simulations = new LinkedHashSet<>();
 		ProgressBar bar = new ProgressBar();
@@ -48,7 +48,7 @@ public class SeriesWorker {
 			/* Building the header */
 			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.DATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
 
-			for (VariableLocation var : variables) {
+			for (VariableLocation var : locations) {
 				head += SummaryRun.MEASURED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
 				head += SummaryRun.SIMULATED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
 			}
@@ -85,12 +85,13 @@ public class SeriesWorker {
 											for (Measurement msimule : simulationTreatment.getSamplings()) {
 
 												if (msample.getDate().equals(msimule.getDate())) { // when dates matches
+													/*printing in CSV*/
 													CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
 													CSVWriter.write(msample.getDate() + SummaryRun.LINE_SEPARATOR);
 													CSVWriter.write(sampleTreatment.getNumber() + SummaryRun.LINE_SEPARATOR);
 
+													/* printing in JSON*/
 													id_ = subFolder.getName() + "" + df.format(sampleTreatment.getNumber()) + "" + df.format(sampleNumber);
-													
 													JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Integer.parseInt(id_) + "}}");
 													JSONWriter.newLine();
 													JSONWriter.write("{");
@@ -99,15 +100,16 @@ public class SeriesWorker {
 													JSONWriter.write("\"" + SummaryRun.TREATMENT_LABEL + "\":" + sampleTreatment.getNumber() + ",");
 
 													for (Variable var : msimule.getValues().keySet()) {
+														/*printing in CSV*/
 														CSVWriter.write(msample.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
 														CSVWriter.write(msimule.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
-
+														
+														/* printing in JSON*/
 														JSONWriter.write("\"" + SummaryRun.MEASURED_PREFIX + var.getName() + "\":" + msample.getValues().get(var).doubleValue() + ",");
 														JSONWriter.write("\"" + SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + msimule.getValues().get(var).doubleValue() + ",");
 													}
 													CSVWriter.newLine();
 
-													//JSONWriter.write("\"" + "Origin" + "\":\"" + run.getSummaryJSONOutput() + "\",");
 													JSONWriter.write("\"" + "id" + "\":\"" + id_ + "\"");
 													JSONWriter.write("}");
 													JSONWriter.newLine();
@@ -180,7 +182,7 @@ public class SeriesWorker {
 					}
 
 					// In values section
-					if (numbers.length > 0 && isNumeric(numbers[0])) {
+					if (numbers.length > 0 && Utils.isNumeric(numbers[0])) {
 
 						year = Integer.parseInt(numbers[0]); // obtain the year
 						doy = Integer.parseInt(numbers[1]); // obtain the DOY
@@ -191,8 +193,8 @@ public class SeriesWorker {
 						calendar.set(Calendar.MINUTE, 0);
 						calendar.set(Calendar.SECOND, 0);
 
-						m = new Measurement(sdf.format(calendar.getTime()));
-						for (VariableLocation vl : variables) {
+						m = new Measurement(SummaryRun.DATE_FORMAT.format(calendar.getTime()));
+						for (VariableLocation vl : locations) {
 							m.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexPlantGro()]));
 						}
 						t.getSamplings().add(m);
@@ -240,7 +242,7 @@ public class SeriesWorker {
 					}
 
 					numbers = line.split(" ");
-					if (numbers.length > 0 && isNumeric(numbers[0])) {
+					if (numbers.length > 0 && Utils.isNumeric(numbers[0])) {
 						newTreatment = new Treatment(Integer.parseInt(numbers[0]));
 						if (!treatment.equals(newTreatment)) {
 							treatment = newTreatment;
@@ -262,8 +264,8 @@ public class SeriesWorker {
 						calendar.set(Calendar.MINUTE, 0);
 						calendar.set(Calendar.SECOND, 0);
 
-						m = new Measurement(sdf.format(calendar.getTime()));
-						for (VariableLocation vl : variables) {
+						m = new Measurement(SummaryRun.DATE_FORMAT.format(calendar.getTime()));
+						for (VariableLocation vl : locations) {
 							m.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexFileT()]));
 						}
 						treatment.getSamplings().add(m);
@@ -311,8 +313,6 @@ public class SeriesWorker {
 		return vars;
 	}
 
-	public boolean isNumeric(String s) {
-		return s.matches("[-+]?\\d*\\.?\\d+");
-	}
+
 
 }

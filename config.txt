@@ -1,6 +1,6 @@
 CALB1501MZ
 MZ
-sample\\CALB1502.MZA
+sample\\CALC1314.MZA
 sample\\CALC1314.MZT
 sample\\CALB1502_head.MZX
 sample\\CALB1502_tail.MZX

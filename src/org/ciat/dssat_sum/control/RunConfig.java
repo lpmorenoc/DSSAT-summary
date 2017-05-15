@@ -37,7 +37,7 @@ public class RunConfig {
 			String eco = reader.nextLine();
 			String domi = "";
 			
-			run = new SummaryRun(modelShortName, runName, fileT);
+			run = new SummaryRun(modelShortName, runName, fileT, fileA);
 			
 			//reader.close();
 		} catch (FileNotFoundException e) {
