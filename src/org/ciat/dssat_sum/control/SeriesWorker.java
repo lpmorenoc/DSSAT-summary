@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.LinkedHashSet;
@@ -20,9 +21,9 @@ import org.ciat.dssat_sum.model.Variable;
 
 public class SeriesWorker {
 
-	private static final String MEASURED_PREFIX = "M-";
-	private static final String SIMULATED_PREFIX = "S-";
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+	private static final String MEASURED_PREFIX = "M_";
+	private static final String SIMULATED_PREFIX = "S_";
+	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // ISO 8601
 	private Set<VariableLocation> variables;
 
 	private SummaryRun run;
@@ -38,35 +39,39 @@ public class SeriesWorker {
 		Set<Treatment> simulations = new LinkedHashSet<>();
 		ProgressBar bar = new ProgressBar();
 		int subFolderIndex = 0;
+		DecimalFormat df = new DecimalFormat("00");
+		String id_="";
 
-		File master = run.getSummaryOutput();
-		try (BufferedWriter bwriter = new BufferedWriter(new PrintWriter(master))) {
+		File CSV = run.getSummaryCSVOutput();
+		File JSON = run.getSummaryJSONOutput();
+		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON))) {
 
 			/* Building the header */
-			String head = "RUN" + run.LINE_SEPARATOR + "DATE" + run.LINE_SEPARATOR + "TR" + run.LINE_SEPARATOR;
+			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.DATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
 
 			for (VariableLocation var : variables) {
-				head += MEASURED_PREFIX + var.getVariable().getName() + run.LINE_SEPARATOR;
-				head += SIMULATED_PREFIX + var.getVariable().getName() + run.LINE_SEPARATOR;
+				head += MEASURED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
+				head += SIMULATED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
 			}
 
-			bwriter.write(head);
-			bwriter.newLine();
+			CSVWriter.write(head);
+			CSVWriter.newLine();
 			/* END building the header **/
 
 			/* Search on each run the PlanGro.OUT file from 0/ folder and further */
 			boolean flagFolder = true;
 			for (int folder = 0; flagFolder; folder++) {
-				File bigFolder = new File(folder + run.PATH_SEPARATOR);
+				File bigFolder = new File(folder + SummaryRun.PATH_SEPARATOR);
 				subFolderIndex = 0;
 				if (bigFolder.exists()) {
 					bar = new ProgressBar();
 					System.out.println("Getting summary on folder " + bigFolder.getName());
 
-					int subFoderTotal = bigFolder.listFiles().length;;
+					int subFoderTotal = bigFolder.listFiles().length;
+					;
 					for (File subFolder : bigFolder.listFiles()) { // for each subfolder
 						// look at the overview.out file
-						File output = new File(subFolder.getAbsolutePath() + run.PATH_SEPARATOR + "PlantGro.OUT");
+						File output = new File(subFolder.getAbsolutePath() + SummaryRun.PATH_SEPARATOR + "PlantGro.OUT");
 						if (output.exists()) {
 							simulations = getSimulatedMeasurements(output); // get simulated values for that run
 
@@ -75,20 +80,38 @@ public class SeriesWorker {
 								for (Treatment simulationTreatment : simulations) {
 
 									if (sampleTreatment.equals(simulationTreatment)) { // when treatments matches
-
+										int sampleNumber = 0;
 										for (Measurement msample : sampleTreatment.getSamplings()) {
+											sampleNumber++;
 											for (Measurement msimule : simulationTreatment.getSamplings()) {
 
 												if (msample.getDate().equals(msimule.getDate())) { // when dates matches
-													bwriter.write(subFolder + run.LINE_SEPARATOR);
-													bwriter.write(msample.getDate() + run.LINE_SEPARATOR);
-													bwriter.write(sampleTreatment.getNumber() + run.LINE_SEPARATOR);
+													CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
+													CSVWriter.write(msample.getDate() + SummaryRun.LINE_SEPARATOR);
+													CSVWriter.write(sampleTreatment.getNumber() + SummaryRun.LINE_SEPARATOR);
 
-													for (Variable v : msimule.getValues().keySet()) {
-														bwriter.write(msample.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);
-														bwriter.write(msimule.getValues().get(v).doubleValue() + run.LINE_SEPARATOR);
+													id_ = subFolder.getName() + "" + df.format(sampleTreatment.getNumber()) + "" + df.format(sampleNumber);
+													
+													JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Integer.parseInt(id_) + "}}");
+													JSONWriter.newLine();
+													JSONWriter.write("{");
+													JSONWriter.write("\"" + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
+													JSONWriter.write("\"" + SummaryRun.DATE_LABEL + "\":\"" + msample.getDate() + "\",");
+													JSONWriter.write("\"" + SummaryRun.TREATMENT_LABEL + "\":" + sampleTreatment.getNumber() + ",");
+
+													for (Variable var : msimule.getValues().keySet()) {
+														CSVWriter.write(msample.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
+														CSVWriter.write(msimule.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
+
+														JSONWriter.write("\"" + MEASURED_PREFIX + var.getName() + "\":" + msample.getValues().get(var).doubleValue() + ",");
+														JSONWriter.write("\"" + SIMULATED_PREFIX + var.getName() + "\":" + msimule.getValues().get(var).doubleValue() + ",");
 													}
-													bwriter.newLine();
+													CSVWriter.newLine();
+
+													//JSONWriter.write("\"" + "Origin" + "\":\"" + run.getSummaryJSONOutput() + "\",");
+													JSONWriter.write("\"" + "id" + "\":\"" + id_ + "\"");
+													JSONWriter.write("}");
+													JSONWriter.newLine();
 
 												}
 											}
@@ -100,16 +123,16 @@ public class SeriesWorker {
 							}
 
 						} else {
-							App.LOG.warning(subFolder + run.PATH_SEPARATOR + output.getName() + " not found");
+							App.LOG.warning(subFolder + SummaryRun.PATH_SEPARATOR + output.getName() + " not found");
 						}
-						
+
 						subFolderIndex++;
 						if (subFolderIndex % 100 == 0) {
 							bar.update(subFolderIndex, subFoderTotal);
 						}
 
 					}
-					bar.update(subFoderTotal-1, subFoderTotal);
+					bar.update(subFoderTotal - 1, subFoderTotal);
 
 				} else {
 					flagFolder = false; // Flag that there are no more folders search in
@@ -120,9 +143,9 @@ public class SeriesWorker {
 			// pwriter.close();
 			// bwriter.close();
 		} catch (FileNotFoundException e) {
-			App.LOG.severe("File not found " + master.getAbsolutePath());
+			App.LOG.severe("File not found " + CSV.getAbsolutePath());
 		} catch (IOException e) {
-			App.LOG.severe("Error writing in " + master.getAbsolutePath());
+			App.LOG.severe("Error writing in " + CSV.getAbsolutePath());
 		}
 
 	}

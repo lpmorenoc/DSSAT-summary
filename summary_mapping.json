@@ -1,0 +1,22 @@
+{
+ "mappings" : {
+  "_default_" : {
+   "properties" : {
+    "RUN" : { "type": "integer", "index" : "true" },
+    "DATE" : { "type": "date", "format": "yyyy-MM-dd", "index" : "true" },
+    "TR" : { "type" : "integer" },
+	"M-LAID" : { "type" : "double" },
+    "S-LAID" : { "type" : "double" },
+	"M-CWAD" : { "type" : "double" },
+    "S-CWAD" : { "type" : "double" },
+	"M-LWAD" : { "type" : "double" },
+    "S-LWAD" : { "type" : "double" },
+	"M-GWAD" : { "type" : "double" },
+    "S-GWAD" : { "type" : "double" },
+	"M-HAID" : { "type" : "double" },
+    "S-HAID" : { "type" : "double" },
+	"id" : { "type" : "text", "index" : "true" }
+   }
+  }
+ }
+}

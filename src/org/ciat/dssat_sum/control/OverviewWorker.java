@@ -43,53 +43,54 @@ public class OverviewWorker {
 
 		populateVariables();
 
-		File master = run.getOverviewOutput();
+		File CSV = run.getOverviewCSVOutput();
+		File JSON = run.getOverviewJSONOutput();
 		
-		try(BufferedWriter bwriter = new BufferedWriter(new PrintWriter(master))) {
+		try(BufferedWriter CSVwriter = new BufferedWriter(new PrintWriter(CSV));BufferedWriter JSONwriter = new BufferedWriter(new PrintWriter(JSON))) {
 
 						
 			/* Building the header */
-			String head = "CULTIVAR" + run.LINE_SEPARATOR + "TR" + run.LINE_SEPARATOR;
+			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
 
 			for (String var : cropNSoilVariables) {
 				outputVarsValues.put(var, "");
 				var = var.replaceAll(",", "");
-				var = var.replaceAll(run.LINE_SEPARATOR, "");
-				head += var + run.LINE_SEPARATOR;
+				var = var.replaceAll(SummaryRun.LINE_SEPARATOR, "");
+				head += var + SummaryRun.LINE_SEPARATOR;
 			}
 
 			for (String var : growthVariables) {
 				outputVarsValues.put(var, "");
 				outputVarsValues.put(MEASURED_PREFIX + var, "");
 				var = var.replaceAll(",", "");
-				var = var.replaceAll(run.LINE_SEPARATOR, "");
-				head += var + run.LINE_SEPARATOR;
-				head += MEASURED_PREFIX + var + run.LINE_SEPARATOR;
+				var = var.replaceAll(SummaryRun.LINE_SEPARATOR, "");
+				head += var + SummaryRun.LINE_SEPARATOR;
+				head += MEASURED_PREFIX + var + SummaryRun.LINE_SEPARATOR;
 			}
 
-			bwriter.write(head);
-			bwriter.newLine();
+			CSVwriter.write(head);
+			CSVwriter.newLine();
 			/* END building the header **/
 			
 			/* Search on each OVERVIEW.OUT file from 0/ folder and further */
 			boolean flagFolder = true;
 			for (int folder = 0; flagFolder; folder++) {
-				File bigFolder = new File(folder + run.PATH_SEPARATOR);
+				File bigFolder = new File(folder + SummaryRun.PATH_SEPARATOR);
 				if (bigFolder.exists()) {
 					bar = new ProgressBar();
 					System.out.println("Getting overwiew on folder " + bigFolder.getName());
 					int subFoderTotal = bigFolder.listFiles().length;
 					
 					for (File subFolder:bigFolder.listFiles()) { // for each subfolder
-						File output = new File(subFolder.getAbsolutePath()+run.PATH_SEPARATOR+"OVERVIEW.OUT"); // look at the overview.out file
+						File output = new File(subFolder.getAbsolutePath()+SummaryRun.PATH_SEPARATOR+"OVERVIEW.OUT"); // look at the overview.out file
 						if (output.exists()) {
-								for (String cadena : getCultivarVariables(output)) { // for each cultivar get all the simulated and observed values
-									bwriter.write(cadena); // print the values
-									bwriter.newLine();
+								for (String cadena : getCandidateVariables(output)) { // for each candidate get all the simulated and observed values
+									CSVwriter.write(cadena); // print the values
+									CSVwriter.newLine();
 								}
 								
 						}else {
-							App.LOG.warning(subFolder+run.PATH_SEPARATOR+output.getName()+" not found");
+							App.LOG.warning(subFolder.getName()+SummaryRun.PATH_SEPARATOR+output.getName()+" not found");
 						}
 						subFolderIndex++;
 						if (subFolderIndex % 100 == 0) {
@@ -187,7 +188,7 @@ public class OverviewWorker {
 
 
 	/* obtain all the simulated and observed values of the variables populated in both cropNSoilVariables and growthVariables */
-	private List<String> getCultivarVariables(File cultivarOutput) {
+	private List<String> getCandidateVariables(File cultivarOutput) {
 
 		List<String> runsOutput = new ArrayList<String>();
 		String cadena = "";
@@ -203,7 +204,7 @@ public class OverviewWorker {
 				case INIT: {
 					if (line.contains("*RUN")) { // to detect each single run of a treatment
 						treatment = Integer.parseInt(line.substring(7, 10).replaceAll(" ", ""));
-						cadena = cultivarOutput.getParent() + run.LINE_SEPARATOR + treatment + run.LINE_SEPARATOR; // to print experiment run ID and the treatment
+						cadena = (new File(cultivarOutput.getParent())).getName()+ SummaryRun.LINE_SEPARATOR + treatment + SummaryRun.LINE_SEPARATOR; // to print experiment run ID and the treatment
 						for (String key : outputVarsValues.keySet()) {
 							outputVarsValues.put(key, ""); // clear the previous values to recycle the Map
 						}
@@ -238,7 +239,7 @@ public class OverviewWorker {
 					if (line.contains("----------------------------------------------------------------------------------------------------------------------------------------------------------------")) {
 						flag = fileSection.END;
 						for (String key : outputVarsValues.keySet()) {
-							cadena += outputVarsValues.get(key) + run.LINE_SEPARATOR;
+							cadena += outputVarsValues.get(key) + SummaryRun.LINE_SEPARATOR;
 						}
 						runsOutput.add(cadena);
 					}
