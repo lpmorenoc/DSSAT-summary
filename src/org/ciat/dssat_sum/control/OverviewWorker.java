@@ -49,9 +49,9 @@ public class OverviewWorker {
 		readMeasurements();
 
 		File CSV = run.getOverviewCSVOutput();
-		File JSON = run.getOverviewJSONOutput();
+		//File JSON = run.getOverviewJSONOutput();
 
-		try (BufferedWriter CSVwriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONwriter = new BufferedWriter(new PrintWriter(JSON))) {
+		try (BufferedWriter CSVwriter = new BufferedWriter(new PrintWriter(CSV)); /*BufferedWriter JSONwriter = new BufferedWriter(new PrintWriter(JSON))*/) {
 
 			/* Building the header */
 			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
