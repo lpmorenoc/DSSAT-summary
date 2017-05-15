@@ -18,9 +18,8 @@ public class OverviewWorker {
 
 
 	private Map<String, String> outputVarsValues;
-	private List<String> growthVariables;
+	private Map<String, String> growthVariables;
 	private List<String> cropNSoilVariables;
-	private final String MEASURED_PREFIX = "Measured ";
 	private SummaryRun run;
 	
 
@@ -34,8 +33,8 @@ public class OverviewWorker {
 
 	public void work() {
 		
-		cropNSoilVariables = new ArrayList<String>();
-		growthVariables = new ArrayList<String>();
+		cropNSoilVariables = new ArrayList<>();
+		growthVariables = new LinkedHashMap<>();
 		outputVarsValues =new LinkedHashMap<>();
 		ProgressBar bar = new ProgressBar();
 		int subFolderIndex = 0;
@@ -59,13 +58,13 @@ public class OverviewWorker {
 				head += var + SummaryRun.LINE_SEPARATOR;
 			}
 
-			for (String var : growthVariables) {
-				outputVarsValues.put(var, "");
-				outputVarsValues.put(MEASURED_PREFIX + var, "");
+			for (String var : growthVariables.keySet()) {
+				outputVarsValues.put(SummaryRun.MEASURED_PREFIX + var, "");
+				outputVarsValues.put(SummaryRun.SIMULATED_PREFIX + var, "");
 				var = var.replaceAll(",", "");
 				var = var.replaceAll(SummaryRun.LINE_SEPARATOR, "");
-				head += var + SummaryRun.LINE_SEPARATOR;
-				head += MEASURED_PREFIX + var + SummaryRun.LINE_SEPARATOR;
+				head += SummaryRun.MEASURED_PREFIX + var + SummaryRun.LINE_SEPARATOR;
+				head += SummaryRun.SIMULATED_PREFIX  + var + SummaryRun.LINE_SEPARATOR;
 			}
 
 			CSVwriter.write(head);
@@ -129,17 +128,16 @@ public class OverviewWorker {
 			cropNSoilVariables.add("End Leaf");
 			cropNSoilVariables.add("Harv. Mat");
 			cropNSoilVariables.add("Harvest");
-			growthVariables.add("Anthesis day (dap)");
-			growthVariables.add("Physiological maturity day (dap) ");
-			growthVariables.add("Yield at harvest maturity (kg [dm]/ha)");
-			growthVariables.add("Number at maturity (no/m2)");
-			growthVariables.add("Unit wt at maturity (g [dm]/unit)");
-			growthVariables.add("Number at maturity (no/unit)");
-			growthVariables.add("Tops weight at maturity (kg [dm]/ha)");
-			growthVariables.add("By-product produced (stalk) at maturity (kg[dm]/ha");
-			growthVariables.add("Leaf area index, maximum");
-			growthVariables.add("Harvest index at maturity");
-			growthVariables.add("Leaf number per stem at maturity");
+			growthVariables.put("ADAP","Anthesis day (dap)");
+			growthVariables.put("MDAP","Physiological maturity day (dap) ");
+			growthVariables.put("HWAM","Yield at harvest maturity (kg [dm]/ha)");
+			growthVariables.put("H#AM","Number at maturity (no/m2)");
+			growthVariables.put("HWUM","Unit wt at maturity (g [dm]/unit)");
+			growthVariables.put("H#UM","Number at maturity (no/unit)");
+			growthVariables.put("CWAM","Tops weight at maturity (kg [dm]/ha)");
+			growthVariables.put("BWAH","By-product produced (stalk) at maturity (kg[dm]/ha");
+			growthVariables.put("LAIX","Leaf area index, maximum");
+			growthVariables.put("HIAM","Harvest index at maturity");
 
 		}
 
@@ -151,17 +149,16 @@ public class OverviewWorker {
 			cropNSoilVariables.add("End Gr Fil");
 			cropNSoilVariables.add("Maturity");
 			cropNSoilVariables.add("Harvest");
-			growthVariables.add("Anthesis day (dap)");
-			growthVariables.add("Physiological maturity day (dap) ");
-			growthVariables.add("Yield at harvest maturity (kg [dm]/ha)");
-			growthVariables.add("Number at maturity (no/m2)");
-			growthVariables.add("Unit wt at maturity (g [dm]/unit)");
-			growthVariables.add("Number at maturity (no/unit)");
-			growthVariables.add("Tops weight at maturity (kg [dm]/ha)");
-			growthVariables.add("By-product produced (stalk) at maturity (kg[dm]/ha");
-			growthVariables.add("Leaf area index, maximum");
-			growthVariables.add("Harvest index at maturity");
-			growthVariables.add("Leaf number per stem at maturity");
+			growthVariables.put("ADAP","Anthesis day (dap)");
+			growthVariables.put("MDAP","Physiological maturity day (dap) ");
+			growthVariables.put("HWAM","Yield at harvest maturity (kg [dm]/ha)");
+			growthVariables.put("H#AM","Number at maturity (no/m2)");
+			growthVariables.put("HWUM","Unit wt at maturity (g [dm]/unit)");
+			growthVariables.put("H#UM","Number at maturity (no/unit)");
+			growthVariables.put("CWAM","Tops weight at maturity (kg [dm]/ha)");
+			growthVariables.put("BWAH","By-product produced (stalk) at maturity (kg[dm]/ha");
+			growthVariables.put("LAIX","Leaf area index, maximum");
+			growthVariables.put("HIAM","Harvest index at maturity");
 
 		}
 			break;
@@ -170,17 +167,16 @@ public class OverviewWorker {
 			cropNSoilVariables.add("End Juven");
 			cropNSoilVariables.add("Floral I");
 			cropNSoilVariables.add("Harvest");
-			growthVariables.add("Anthesis day (dap)");
-			growthVariables.add("Physiological maturity day (dap) ");
-			growthVariables.add("Yield at harvest maturity (kg [dm]/ha)");
-			growthVariables.add("Number at maturity (no/m2)");
-			growthVariables.add("Unit wt at maturity (g [dm]/unit)");
-			growthVariables.add("Number at maturity (no/unit)");
-			growthVariables.add("Tops weight at maturity (kg [dm]/ha)");
-			growthVariables.add("By-product produced (stalk) at maturity (kg[dm]/ha");
-			growthVariables.add("Leaf area index, maximum");
-			growthVariables.add("Harvest index at maturity");
-			growthVariables.add("Leaf number per stem at maturity");
+			growthVariables.put("ADAP","Anthesis day (dap)");
+			growthVariables.put("MDAP","Physiological maturity day (dap) ");
+			growthVariables.put("HWAM","Yield at harvest maturity (kg [dm]/ha)");
+			growthVariables.put("H#AM","Number at maturity (no/m2)");
+			growthVariables.put("HWUM","Unit wt at maturity (g [dm]/unit)");
+			growthVariables.put("H#UM","Number at maturity (no/unit)");
+			growthVariables.put("CWAM","Tops weight at maturity (kg [dm]/ha)");
+			growthVariables.put("BWAH","By-product produced (stalk) at maturity (kg[dm]/ha");
+			growthVariables.put("LAIX","Leaf area index, maximum");
+			growthVariables.put("HIAM","Harvest index at maturity");
 		}
 		}
 
@@ -217,8 +213,8 @@ public class OverviewWorker {
 				case CROP_N_SOIL: {
 
 					for (String var : cropNSoilVariables) {
-						if (line.contains(var)) {
-							outputVarsValues.put(var, line.substring(7, 12)); // get value
+						if (line.contains(var)) { // if contains the string that corresponds to the variable
+							outputVarsValues.put(var, line.substring(7, 12)); // get value from file
 						}
 					}
 					if (line.contains("*MAIN GROWTH AND DEVELOPMENT VARIABLES")) { // detect section
@@ -228,10 +224,10 @@ public class OverviewWorker {
 					break;
 				case GROWTH: {
 
-					for (String var : growthVariables) {
-						if (line.contains(var)) {
-							outputVarsValues.put(var, line.substring(57, 64)); // get simulated value
-							outputVarsValues.put(MEASURED_PREFIX + var, line.substring(69, 77)); // get observed value
+					for (String var : growthVariables.keySet()) {
+						if (line.contains(growthVariables.get(var))) { // if contains the string that corresponds to the variable
+							outputVarsValues.put(SummaryRun.MEASURED_PREFIX + var, line.substring(69, 77)); // get observed value //TODO change this from A file
+							outputVarsValues.put(SummaryRun.SIMULATED_PREFIX + var, line.substring(57, 64)); // get simulated value
 
 						}
 					}

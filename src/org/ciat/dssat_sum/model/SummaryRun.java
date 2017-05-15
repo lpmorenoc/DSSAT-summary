@@ -10,6 +10,8 @@ public class SummaryRun {
 	public static final String CANDIDATE_LABEL="RUN";
 	public static final String DATE_LABEL="DATE";
 	public static final String TREATMENT_LABEL="TR";
+	public static final String MEASURED_PREFIX = "M_";
+	public static final String SIMULATED_PREFIX = "S_";
 	private File overviewCSVOutput;
 	private File overviewJSONOutput;
 	private File summaryCSVOutput;

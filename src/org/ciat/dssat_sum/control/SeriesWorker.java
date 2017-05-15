@@ -21,8 +21,7 @@ import org.ciat.dssat_sum.model.Variable;
 
 public class SeriesWorker {
 
-	private static final String MEASURED_PREFIX = "M_";
-	private static final String SIMULATED_PREFIX = "S_";
+
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // ISO 8601
 	private Set<VariableLocation> variables;
 
@@ -50,8 +49,8 @@ public class SeriesWorker {
 			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.DATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
 
 			for (VariableLocation var : variables) {
-				head += MEASURED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
-				head += SIMULATED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
+				head += SummaryRun.MEASURED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
+				head += SummaryRun.SIMULATED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
 			}
 
 			CSVWriter.write(head);
@@ -103,8 +102,8 @@ public class SeriesWorker {
 														CSVWriter.write(msample.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
 														CSVWriter.write(msimule.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
 
-														JSONWriter.write("\"" + MEASURED_PREFIX + var.getName() + "\":" + msample.getValues().get(var).doubleValue() + ",");
-														JSONWriter.write("\"" + SIMULATED_PREFIX + var.getName() + "\":" + msimule.getValues().get(var).doubleValue() + ",");
+														JSONWriter.write("\"" + SummaryRun.MEASURED_PREFIX + var.getName() + "\":" + msample.getValues().get(var).doubleValue() + ",");
+														JSONWriter.write("\"" + SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + msimule.getValues().get(var).doubleValue() + ",");
 													}
 													CSVWriter.newLine();
 
