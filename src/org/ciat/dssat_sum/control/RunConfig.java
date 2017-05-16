@@ -31,13 +31,13 @@ public class RunConfig {
 			String fileT = reader.nextLine();
 			String fileXHead = reader.nextLine();
 			String fileXTail = reader.nextLine();
-			String culHead = reader.nextLine();
+			String fileCULHead = reader.nextLine();
 			String maxFiles = reader.nextLine();
 			String vrname = reader.nextLine();
 			String eco = reader.nextLine();
 			String domi = "";
 			
-			run = new SummaryRun(modelShortName, runName, fileT, fileA);
+			run = new SummaryRun(modelShortName, runName, fileT, fileA, fileCULHead);
 			
 			//reader.close();
 		} catch (FileNotFoundException e) {

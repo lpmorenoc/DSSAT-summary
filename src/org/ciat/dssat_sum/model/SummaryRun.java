@@ -18,19 +18,22 @@ public class SummaryRun {
 	private File overviewJSONOutput;
 	private File summaryCSVOutput;
 	private File summaryJSONOutput;
-	private String fileT;
-	private String fileA;
+	private File fileT;
+	private File fileA;
+	private File fileCULHead;
 
-	public SummaryRun(String model, String runName, String fileT, String fileA) {
+	public SummaryRun(String model, String runName, String fileT, String fileA, String fileCULHead) {
 		super();
 		this.setModel(ModelCode.getModelCode(model));
 		this.overviewCSVOutput = new File(runName + "_overview.csv");
 		this.overviewJSONOutput = new File(runName + "_overview.json");
 		this.summaryCSVOutput = new File(runName + "_summary.csv");
 		this.summaryJSONOutput = new File(runName + "_summary.json");
-		this.fileT = fileT;
-		this.fileA = fileA;
+		this.fileT = new File(fileT);
+		this.fileA = new File(fileA);
+		this.fileCULHead = new File(fileCULHead);
 	}
+	
 
 	public ModelCode getModel() {
 		return model;
@@ -40,11 +43,11 @@ public class SummaryRun {
 		this.model = model;
 	}
 
-	public String getFileT() {
+	public File getFileT() {
 		return fileT;
 	}
 
-	public void setFileT(String fileT) {
+	public void setFileT(File fileT) {
 		this.fileT = fileT;
 	}
 
@@ -64,12 +67,16 @@ public class SummaryRun {
 		return overviewJSONOutput;
 	}
 
-	public String getFileA() {
+	public File getFileA() {
 		return fileA;
 	}
 
-	public void setFileA(String fileA) {
+	public void setFileA(File fileA) {
 		this.fileA = fileA;
+	}
+
+	public File getFileCULHead() {
+		return fileCULHead;
 	}
 
 }

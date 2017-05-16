@@ -1,13 +1,18 @@
 package org.ciat.dssat_sum.control;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.Calendar;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import org.ciat.dssat_sum.model.VariableLocation;
@@ -21,9 +26,9 @@ import org.ciat.dssat_sum.model.Variable;
 
 public class SeriesWorker {
 
-
-	
 	private Set<VariableLocation> locations;
+	private String[] inputCoeficientsNames;
+	private Map<Integer, String> inputCoeficients; // pair of run a coeficients
 
 	private SummaryRun run;
 
@@ -36,14 +41,17 @@ public class SeriesWorker {
 		locations = getVariables(run.getModel());
 		Set<Treatment> samplings = getSampleMeasurements();
 		Set<Treatment> simulations = new LinkedHashSet<>();
+		inputCoeficients = new LinkedHashMap<>(); 
 		ProgressBar bar = new ProgressBar();
 		int subFolderIndex = 0;
 		DecimalFormat df = new DecimalFormat("00");
-		String id_="";
+		String id_ = "";
 
 		File CSV = run.getSummaryCSVOutput();
 		File JSON = run.getSummaryJSONOutput();
-		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON))) {
+		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON));) {
+
+			populateInputCoeficients();
 
 			/* Building the header */
 			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.DATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
@@ -85,14 +93,14 @@ public class SeriesWorker {
 											for (Measurement msimule : simulationTreatment.getSamplings()) {
 
 												if (msample.getDate().equals(msimule.getDate())) { // when dates matches
-													/*printing in CSV*/
+													/* printing in CSV */
 													CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
 													CSVWriter.write(msample.getDate() + SummaryRun.LINE_SEPARATOR);
 													CSVWriter.write(sampleTreatment.getNumber() + SummaryRun.LINE_SEPARATOR);
 
-													/* printing in JSON*/
-													id_ = subFolder.getName() + "" + df.format(sampleTreatment.getNumber()) + "" + df.format(sampleNumber);
-													JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Integer.parseInt(id_) + "}}");
+													/* printing in JSON */
+													id_ = df.format(sampleTreatment.getNumber()) + df.format(sampleNumber) + subFolder.getName();
+													JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
 													JSONWriter.newLine();
 													JSONWriter.write("{");
 													JSONWriter.write("\"" + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
@@ -100,13 +108,17 @@ public class SeriesWorker {
 													JSONWriter.write("\"" + SummaryRun.TREATMENT_LABEL + "\":" + sampleTreatment.getNumber() + ",");
 
 													for (Variable var : msimule.getValues().keySet()) {
-														/*printing in CSV*/
+														/* printing in CSV */
 														CSVWriter.write(msample.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
 														CSVWriter.write(msimule.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
-														
-														/* printing in JSON*/
+
+														/* printing in JSON */
 														JSONWriter.write("\"" + SummaryRun.MEASURED_PREFIX + var.getName() + "\":" + msample.getValues().get(var).doubleValue() + ",");
 														JSONWriter.write("\"" + SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + msimule.getValues().get(var).doubleValue() + ",");
+													}
+													String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
+													for (int i=0;i<values.length;i++){
+														JSONWriter.write("\""+ inputCoeficientsNames[i] + "\":" + values[i] + ","); 
 													}
 													CSVWriter.newLine();
 
@@ -149,6 +161,47 @@ public class SeriesWorker {
 			App.LOG.severe("Error writing in " + CSV.getAbsolutePath());
 		}
 
+	}
+
+	private void populateInputCoeficients() {
+
+		try (BufferedReader inHead = new BufferedReader(new InputStreamReader(new FileInputStream("cultivars.CUL")))) {
+			String line = "";
+			int indexVars=0;
+			while ((line = inHead.readLine()) != null) {
+				// if header populate variables names
+				if (line.contains("ECO#")) {
+					
+					indexVars=line.replaceAll("ECO#", "ECO;").indexOf(";");
+					
+					line = line.split("#")[2];
+					/* Leave the line with only one space of separation */
+					while (line.contains("  ")) {
+						line = line.replaceAll("  ", " ");
+					}
+					line = line.trim();
+
+					inputCoeficientsNames = line.split(" "); // divide in spaces
+				}else{
+					String first=line.split(" ")[0];
+					
+					if(Utils.isNumeric(first)){
+						line = line.substring(indexVars);
+						line = line.replaceAll("#", "");
+						/* Leave the line with only one space of separation */
+						while (line.contains("  ")) {
+							line = line.replaceAll("  ", " ");
+						}
+						line = line.trim();
+						inputCoeficients.put(Integer.parseInt(first), line);
+						
+					}
+				}
+				
+			}
+		} catch (IOException e) {
+			App.LOG.severe("File not found " + run.getFileCULHead());
+		} 
 	}
 
 	private Set<Treatment> getSimulatedMeasurements(File plantGro) {
@@ -218,7 +271,7 @@ public class SeriesWorker {
 
 	private Set<Treatment> getSampleMeasurements() {
 		Set<Treatment> treatments = new LinkedHashSet<>();
-		File fileT = new File(run.getFileT());
+		File fileT = run.getFileT();
 		Scanner reader;
 		String line = "";
 		String[] numbers;
@@ -312,7 +365,5 @@ public class SeriesWorker {
 
 		return vars;
 	}
-
-
 
 }

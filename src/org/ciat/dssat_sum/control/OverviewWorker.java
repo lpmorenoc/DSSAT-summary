@@ -330,7 +330,7 @@ public class OverviewWorker {
 	}
 
 	private void readMeasurements() {
-		File fileA = new File(run.getFileA());
+		File fileA = run.getFileA();
 		Scanner reader;
 		String line = "";
 		String[] numbers;
