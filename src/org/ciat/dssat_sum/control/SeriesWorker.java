@@ -41,7 +41,7 @@ public class SeriesWorker {
 		locations = getVariables(run.getModel());
 		Set<Treatment> samplings = getSampleMeasurements();
 		Set<Treatment> simulations = new LinkedHashSet<>();
-		inputCoeficients = new LinkedHashMap<>(); 
+		inputCoeficients = new LinkedHashMap<>();
 		ProgressBar bar = new ProgressBar();
 		int subFolderIndex = 0;
 		DecimalFormat df = new DecimalFormat("00");
@@ -49,6 +49,10 @@ public class SeriesWorker {
 
 		File CSV = run.getSummaryCSVOutput();
 		File JSON = run.getSummaryJSONOutput();
+
+		boolean c = App.prop.getProperty("output.summary.csv").contains("Y");
+		boolean j = App.prop.getProperty("output.summary.json").contains("Y");
+
 		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON));) {
 
 			populateInputCoeficients();
@@ -61,8 +65,10 @@ public class SeriesWorker {
 				head += SummaryRun.SIMULATED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
 			}
 
-			CSVWriter.write(head);
-			CSVWriter.newLine();
+			if (c) {
+				CSVWriter.write(head);
+				CSVWriter.newLine();
+			}
 			/* END building the header **/
 
 			/* Search on each run the PlanGro.OUT file from 0/ folder and further */
@@ -75,7 +81,7 @@ public class SeriesWorker {
 					System.out.println("Getting summary on folder " + bigFolder.getName());
 
 					int subFoderTotal = bigFolder.listFiles().length;
-					;
+
 					for (File subFolder : bigFolder.listFiles()) { // for each subfolder
 						// look at the overview.out file
 						File output = new File(subFolder.getAbsolutePath() + SummaryRun.PATH_SEPARATOR + "PlantGro.OUT");
@@ -94,37 +100,50 @@ public class SeriesWorker {
 
 												if (msample.getDate().equals(msimule.getDate())) { // when dates matches
 													/* printing in CSV */
-													CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
-													CSVWriter.write(msample.getDate() + SummaryRun.LINE_SEPARATOR);
-													CSVWriter.write(sampleTreatment.getNumber() + SummaryRun.LINE_SEPARATOR);
+													if (c) {
+														CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
+														CSVWriter.write(msample.getDate() + SummaryRun.LINE_SEPARATOR);
+														CSVWriter.write(sampleTreatment.getNumber() + SummaryRun.LINE_SEPARATOR);
+													}
 
 													/* printing in JSON */
 													id_ = df.format(sampleTreatment.getNumber()) + df.format(sampleNumber) + subFolder.getName();
-													JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
-													JSONWriter.newLine();
-													JSONWriter.write("{");
-													JSONWriter.write("\"" + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
-													JSONWriter.write("\"" + SummaryRun.DATE_LABEL + "\":\"" + msample.getDate() + "\",");
-													JSONWriter.write("\"" + SummaryRun.TREATMENT_LABEL + "\":" + sampleTreatment.getNumber() + ",");
+													if (j) {
+														JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
+														JSONWriter.newLine();
+														JSONWriter.write("{");
+														JSONWriter.write("\"" + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
+														JSONWriter.write("\"" + SummaryRun.DATE_LABEL + "\":\"" + msample.getDate() + "\",");
+														JSONWriter.write("\"" + SummaryRun.TREATMENT_LABEL + "\":" + sampleTreatment.getNumber() + ",");
+													}
 
 													for (Variable var : msimule.getValues().keySet()) {
 														/* printing in CSV */
-														CSVWriter.write(msample.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
-														CSVWriter.write(msimule.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
+														if (c) {
+															CSVWriter.write(msample.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
+															CSVWriter.write(msimule.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
+														}
 
 														/* printing in JSON */
-														JSONWriter.write("\"" + SummaryRun.MEASURED_PREFIX + var.getName() + "\":" + msample.getValues().get(var).doubleValue() + ",");
-														JSONWriter.write("\"" + SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + msimule.getValues().get(var).doubleValue() + ",");
+														if (j) {
+															JSONWriter.write("\"" + SummaryRun.MEASURED_PREFIX + var.getName() + "\":" + msample.getValues().get(var).doubleValue() + ",");
+															JSONWriter.write("\"" + SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + msimule.getValues().get(var).doubleValue() + ",");
+														}
 													}
 													String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
-													for (int i=0;i<values.length;i++){
-														JSONWriter.write("\""+ inputCoeficientsNames[i] + "\":" + values[i] + ","); 
+													for (int i = 0; i < values.length; i++) {
+														if (j) {
+															JSONWriter.write("\"" + inputCoeficientsNames[i] + "\":" + values[i] + ",");
+														}
 													}
-													CSVWriter.newLine();
-
-													JSONWriter.write("\"" + "id" + "\":\"" + id_ + "\"");
-													JSONWriter.write("}");
-													JSONWriter.newLine();
+													if (c) {
+														CSVWriter.newLine();
+													}
+													if (j) {
+														JSONWriter.write("\"" + "id" + "\":\"" + id_ + "\"");
+														JSONWriter.write("}");
+														JSONWriter.newLine();
+													}
 
 												}
 											}
@@ -165,15 +184,15 @@ public class SeriesWorker {
 
 	private void populateInputCoeficients() {
 
-		try (BufferedReader inHead = new BufferedReader(new InputStreamReader(new FileInputStream(App.prop.getProperty("crop.name")+".CUL")))) {
+		try (BufferedReader inHead = new BufferedReader(new InputStreamReader(new FileInputStream(App.prop.getProperty("crop.name") + ".CUL")))) {
 			String line = "";
-			int indexVars=0;
+			int indexVars = 0;
 			while ((line = inHead.readLine()) != null) {
 				// if header populate variables names
 				if (line.contains("ECO#")) {
-					
-					indexVars=line.replaceAll("ECO#", "ECO;").indexOf(";")+1;
-					
+
+					indexVars = line.replaceAll("ECO#", "ECO;").indexOf(";") + 1;
+
 					line = line.split("#")[2];
 					/* Leave the line with only one space of separation */
 					while (line.contains("  ")) {
@@ -182,10 +201,10 @@ public class SeriesWorker {
 					line = line.trim();
 
 					inputCoeficientsNames = line.split(" "); // divide in spaces
-				}else{
-					String first=line.split(" ")[0];
-					
-					if(Utils.isNumeric(first)){
+				} else {
+					String first = line.split(" ")[0];
+
+					if (Utils.isNumeric(first)) {
 						line = line.substring(indexVars);
 						line = line.replaceAll("#", "");
 						/* Leave the line with only one space of separation */
@@ -194,14 +213,14 @@ public class SeriesWorker {
 						}
 						line = line.trim();
 						inputCoeficients.put(Integer.parseInt(first), line);
-						
+
 					}
 				}
-				
+
 			}
 		} catch (IOException e) {
-			App.log.severe("File not found " + App.prop.getProperty("crop.name")+".CUL");
-		} 
+			App.log.severe("File not found " + App.prop.getProperty("crop.name") + ".CUL");
+		}
 	}
 
 	private Set<Treatment> getSimulatedMeasurements(File plantGro) {
