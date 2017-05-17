@@ -17,7 +17,7 @@ import java.util.Scanner;
 import java.util.Set;
 import org.ciat.dssat_sum.model.VariableLocation;
 import org.ciat.dssat_sum.model.Measurement;
-import org.ciat.dssat_sum.model.ModelCode;
+import org.ciat.dssat_sum.model.CropCode;
 import org.ciat.dssat_sum.model.ProgressBar;
 import org.ciat.dssat_sum.model.SummaryRun;
 import org.ciat.dssat_sum.model.Treatment;
@@ -136,7 +136,7 @@ public class SeriesWorker {
 							}
 
 						} else {
-							App.LOG.warning(subFolder + SummaryRun.PATH_SEPARATOR + output.getName() + " not found");
+							App.log.warning(subFolder + SummaryRun.PATH_SEPARATOR + output.getName() + " not found");
 						}
 
 						subFolderIndex++;
@@ -149,30 +149,30 @@ public class SeriesWorker {
 
 				} else {
 					flagFolder = false; // Flag that there are no more folders search in
-					App.LOG.fine("Finished gathering simulated results");
+					App.log.fine("Finished gathering simulated results");
 				}
 			}
 
 			// pwriter.close();
 			// bwriter.close();
 		} catch (FileNotFoundException e) {
-			App.LOG.severe("File not found " + CSV.getAbsolutePath());
+			App.log.severe("File not found " + CSV.getAbsolutePath());
 		} catch (IOException e) {
-			App.LOG.severe("Error writing in " + CSV.getAbsolutePath());
+			App.log.severe("Error writing in " + CSV.getAbsolutePath());
 		}
 
 	}
 
 	private void populateInputCoeficients() {
 
-		try (BufferedReader inHead = new BufferedReader(new InputStreamReader(new FileInputStream("cultivars.CUL")))) {
+		try (BufferedReader inHead = new BufferedReader(new InputStreamReader(new FileInputStream(App.prop.getProperty("crop.name")+".CUL")))) {
 			String line = "";
 			int indexVars=0;
 			while ((line = inHead.readLine()) != null) {
 				// if header populate variables names
 				if (line.contains("ECO#")) {
 					
-					indexVars=line.replaceAll("ECO#", "ECO;").indexOf(";");
+					indexVars=line.replaceAll("ECO#", "ECO;").indexOf(";")+1;
 					
 					line = line.split("#")[2];
 					/* Leave the line with only one space of separation */
@@ -200,7 +200,7 @@ public class SeriesWorker {
 				
 			}
 		} catch (IOException e) {
-			App.LOG.severe("File not found " + run.getFileCULHead());
+			App.log.severe("File not found " + App.prop.getProperty("crop.name")+".CUL");
 		} 
 	}
 
@@ -259,10 +259,10 @@ public class SeriesWorker {
 				// reader.close();
 
 			} catch (FileNotFoundException e) {
-				App.LOG.severe("File not found as " + plantGro.getAbsolutePath());
+				App.log.severe("File not found as " + plantGro.getAbsolutePath());
 			}
 		} else {
-			App.LOG.warning("File not found " + plantGro.getAbsolutePath());
+			App.log.warning("File not found " + plantGro.getAbsolutePath());
 		}
 
 		return treatments;
@@ -271,7 +271,7 @@ public class SeriesWorker {
 
 	private Set<Treatment> getSampleMeasurements() {
 		Set<Treatment> treatments = new LinkedHashSet<>();
-		File fileT = run.getFileT();
+		File fileT = new File(App.prop.getProperty("fileT.location"));
 		Scanner reader;
 		String line = "";
 		String[] numbers;
@@ -330,16 +330,16 @@ public class SeriesWorker {
 
 				reader.close();
 			} else {
-				App.LOG.severe("File T not found as " + fileT.getAbsolutePath());
+				App.log.severe("File T not found as " + fileT.getAbsolutePath());
 			}
 
 		} catch (FileNotFoundException e) {
-			App.LOG.severe("File T not found as " + fileT.getAbsolutePath());
+			App.log.severe("File T not found as " + fileT.getAbsolutePath());
 		}
 		return treatments;
 	}
 
-	private Set<VariableLocation> getVariables(ModelCode modelCode) {
+	private Set<VariableLocation> getVariables(CropCode modelCode) {
 		Set<VariableLocation> vars = new LinkedHashSet<VariableLocation>();
 
 		switch (run.getModel()) {
@@ -358,7 +358,7 @@ public class SeriesWorker {
 		}
 			break;
 		default: {
-			App.LOG.warning("Crop not configurated for plantgro: " + run.getModel());
+			App.log.warning("Crop not configurated for plantgro: " + run.getModel());
 		}
 
 		}

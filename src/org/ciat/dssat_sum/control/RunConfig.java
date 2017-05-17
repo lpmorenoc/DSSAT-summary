@@ -1,20 +1,15 @@
 package org.ciat.dssat_sum.control;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Scanner;
-
-
 import org.ciat.dssat_sum.control.OverviewWorker;
 import org.ciat.dssat_sum.model.SummaryRun;
 
 public class RunConfig {
 	private SummaryRun run;
 	
-	@SuppressWarnings("unused")
-	public void loadConfig(File config){
+
+	public RunConfig(){
 
 		/* Tag the run with the timestamp*/
 		long yourmilliseconds = System.currentTimeMillis();
@@ -22,31 +17,10 @@ public class RunConfig {
 		Date resultdate = new Date(yourmilliseconds);
 		String runName = sdf.format(resultdate);
 		
+		String cropName =  App.prop.getProperty("crop.name");
+		String cropShortName = App.prop.getProperty("crop.shortname");
 		
-		try(Scanner reader = new Scanner(config)) {
-			
-			String modelName = reader.nextLine();
-			String modelShortName = reader.nextLine();
-			String fileA = reader.nextLine();
-			String fileT = reader.nextLine();
-			String fileXHead = reader.nextLine();
-			String fileXTail = reader.nextLine();
-			String fileCULHead = reader.nextLine();
-			String maxFiles = reader.nextLine();
-			String vrname = reader.nextLine();
-			String eco = reader.nextLine();
-			String domi = "";
-			
-			run = new SummaryRun(modelShortName, runName, fileT, fileA, fileCULHead);
-			
-			//reader.close();
-		} catch (FileNotFoundException e) {
-			App.LOG.severe("Configuration not found in: "+ config.getAbsolutePath());
-		}catch (Exception e) {
-			App.LOG.severe("Error reading configuration in file, please check the format: "+ config.getAbsolutePath());
-		}
-
-
+		run = new SummaryRun(cropName, cropShortName, runName);
 	
 	}
 	
@@ -58,6 +32,9 @@ public class RunConfig {
 	public SeriesWorker getSeriesWorker() {
 		return new SeriesWorker(run);
 	}
+	
+	
+
 
 
 

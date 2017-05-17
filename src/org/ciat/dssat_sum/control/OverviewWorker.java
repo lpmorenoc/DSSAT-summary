@@ -94,7 +94,7 @@ public class OverviewWorker {
 							}
 
 						} else {
-							App.LOG.warning(subFolder.getName() + SummaryRun.PATH_SEPARATOR + output.getName() + " not found");
+							App.log.warning(subFolder.getName() + SummaryRun.PATH_SEPARATOR + output.getName() + " not found");
 						}
 						subFolderIndex++;
 						if (subFolderIndex % 100 == 0) {
@@ -106,7 +106,7 @@ public class OverviewWorker {
 
 				} else {
 					flagFolder = false; // Flag that there are no more folders search in
-					App.LOG.fine("Finished gathering overwiew results");
+					App.log.fine("Finished gathering overwiew results");
 				}
 			}
 
@@ -208,7 +208,7 @@ public class OverviewWorker {
 		}
 			break;
 		default: {
-			App.LOG.warning("Crop not configurated for overview: " + run.getModel() + ", using default variables");
+			App.log.warning("Crop not configurated for overview: " + run.getModel() + ", using default variables");
 			cropNSoilLables.add("End Juven");
 			cropNSoilLables.add("Floral I");
 			cropNSoilLables.add("Harvest");
@@ -330,7 +330,7 @@ public class OverviewWorker {
 	}
 
 	private void readMeasurements() {
-		File fileA = run.getFileA();
+		File fileA = new File(App.prop.getProperty("fileA.location"));
 		Scanner reader;
 		String line = "";
 		String[] numbers;
@@ -355,7 +355,7 @@ public class OverviewWorker {
 						if (!treatment.equals(newTreatment)) {
 							treatment = newTreatment;
 						} else {
-							App.LOG.warning("It is suppose to have only one sample per treatment " + numbers[0]);
+							App.log.warning("It is suppose to have only one sample per treatment " + numbers[0]);
 						}
 						
 						for (VariableLocation vl : locations) {
@@ -366,11 +366,11 @@ public class OverviewWorker {
 
 				reader.close();
 			} else {
-				App.LOG.severe("File A not found as " + fileA.getAbsolutePath());
+				App.log.severe("File A not found as " + fileA.getAbsolutePath());
 			}
 
 		} catch (FileNotFoundException e) {
-			App.LOG.severe("File A not found as " + fileA.getAbsolutePath());
+			App.log.severe("File A not found as " + fileA.getAbsolutePath());
 		}
 	}
 
@@ -397,7 +397,7 @@ public class OverviewWorker {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		App.LOG.info("Detected model: " + model);
+		App.log.info("Detected model: " + model);
 		return model;
 	}
 

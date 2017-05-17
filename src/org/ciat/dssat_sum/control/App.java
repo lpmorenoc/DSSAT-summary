@@ -1,9 +1,11 @@
 package org.ciat.dssat_sum.control;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -16,52 +18,48 @@ import org.ciat.dssat_sum.model.LogFormatter;
 
 public class App {
 
-	public static Logger LOG = obtainLogger();
-	
+	public static Logger log;
+	public static Properties prop;
+
 	public static void main(String[] args) {
-		App app= new App();
+		App app = new App();
+		log = app.obtainLogger();
+		prop = app.obtainProperties();
 		app.run();
 	}
-	
+
 	private void run() {
 
 		OverviewWorker owrk;
 		SeriesWorker swrk;
 		RunConfig rc = new RunConfig();
 
-		
-		LOG.fine("work started");
-		
-		rc.loadConfig(new File("config.txt"));
+		log.fine("work started");
 
 		owrk = rc.getOverviewWorker();
 		owrk.work();
-		LOG.fine("overview.csv created");
+		log.fine("overview.csv created");
 		swrk = rc.getSeriesWorker();
 		swrk.work();
-		LOG.fine("summary.csv created");
+		log.fine("summary.csv created");
 
-		LOG.fine("work finished");
-		
+		log.fine("work finished");
+
 	}
 
-
-
-
-
-	private static Logger obtainLogger() {
-		/* Tag the log with the timestamp*/
+	private Logger obtainLogger() {
+		/* Tag the log with the timestamp */
 		long yourmilliseconds = System.currentTimeMillis();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
 		Date resultdate = new Date(yourmilliseconds);
 		String runName = sdf.format(resultdate);
-		
+
 		FileHandler fileHandler;
 		ConsoleHandler consoleHandler;
 		LogFormatter formatterTxt;
 		Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 		Handler[] handlers = logger.getHandlers();
-		for(Handler handler : handlers) {
+		for (Handler handler : handlers) {
 			logger.removeHandler(handler);
 		}
 		try {
@@ -77,7 +75,6 @@ public class App {
 			logger.setUseParentHandlers(false);
 			logger.setLevel(Level.ALL);
 
-			
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -87,4 +84,25 @@ public class App {
 		return logger;
 	}
 
+	private Properties obtainProperties() {
+		Properties prop = new Properties();
+		File config = new File("config.properties");
+		if (config.exists()) {
+			try (FileInputStream in = new FileInputStream(config.getName())) {
+				prop.load(in);
+
+			} catch (IOException e) {
+				App.log.severe(config + "not found");
+			} catch (Exception e) {
+				App.log.severe("Error reading configuration in file, please check the format");
+			}
+
+			return prop;
+
+		} else {
+			App.log.severe("Configuration not found in: " + config.getAbsolutePath());
+		}
+
+		return prop;
+	}
 }
