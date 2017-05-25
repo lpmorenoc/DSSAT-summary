@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.ciat.dssat_sum.model.Sampling;
 import org.ciat.dssat_sum.model.ProgressBar;
 import org.ciat.dssat_sum.model.SummaryRun;
 import org.ciat.dssat_sum.model.Treatment;
@@ -22,10 +23,10 @@ public class OverviewWorker {
 
 	private Map<String, String> outputValues;
 	private Map<Variable, String> growthLables;
-	private Map<Variable, String> measured;
 	private List<String> cropNSoilLables;
 	private List<VariableLocation> locations;
 	private SummaryRun run;
+	private Map<Integer,Treatment> treatments; 
 
 	public enum fileSection {
 		INIT(), CROP_N_SOIL, GROWTH, END
@@ -37,7 +38,7 @@ public class OverviewWorker {
 		this.growthLables = new LinkedHashMap<Variable, String>();
 		this.outputValues = new LinkedHashMap<String, String>();
 		this.locations = new ArrayList<VariableLocation>();
-		this.measured = new LinkedHashMap<>();
+
 	}
 
 	public void work() {
@@ -46,12 +47,13 @@ public class OverviewWorker {
 		int subFolderIndex = 0;
 
 		populateVariables();
-		readMeasurements();
+		treatments = readMeasurements();
 
 		File CSV = run.getOverviewCSVOutput();
-		//File JSON = run.getOverviewJSONOutput();
+		// File JSON = run.getOverviewJSONOutput();
 
-		try (BufferedWriter CSVwriter = new BufferedWriter(new PrintWriter(CSV)); /*BufferedWriter JSONwriter = new BufferedWriter(new PrintWriter(JSON))*/) {
+		try (BufferedWriter CSVwriter = new BufferedWriter(
+				new PrintWriter(CSV)); /* BufferedWriter JSONwriter = new BufferedWriter(new PrintWriter(JSON)) */) {
 
 			/* Building the header */
 			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
@@ -85,10 +87,10 @@ public class OverviewWorker {
 
 					for (File subFolder : bigFolder.listFiles()) { // for each subfolder
 						// look at the overview.out file
-						File output = new File(subFolder.getAbsolutePath() + SummaryRun.PATH_SEPARATOR + "OVERVIEW.OUT"); 
+						File output = new File(subFolder.getAbsolutePath() + SummaryRun.PATH_SEPARATOR + "OVERVIEW.OUT");
 						if (output.exists()) {
 							// for each candidate get all the simulated and observed values
-							for (String cadena : getCandidateVariables(output)) { 
+							for (String cadena : getCandidateVariables(output)) {
 								CSVwriter.write(cadena); // print the values
 								CSVwriter.newLine();
 							}
@@ -295,9 +297,10 @@ public class OverviewWorker {
 					for (Variable var : growthLables.keySet()) {
 						// if contains the string that corresponds to the variable
 						if (!line.isEmpty() && line.contains(growthLables.get(var))) {
+							for(Sampling measured:treatments.get(treatment).getSamplings()){
+							outputValues.put(SummaryRun.MEASURED_PREFIX + var.getName(), measured.getValues().get(var).doubleValue()+"");
 							// get simulated value
-							outputValues.put(SummaryRun.MEASURED_PREFIX+ var.getName(), measured.get(var));
-							outputValues.put(SummaryRun.SIMULATED_PREFIX + var.getName(), line.substring(57, 64));
+							outputValues.put(SummaryRun.SIMULATED_PREFIX + var.getName(), line.substring(57, 64)); }
 						}
 					}
 					// to detect the end of the treatment run
@@ -320,7 +323,7 @@ public class OverviewWorker {
 					break;
 				}
 			}
-			
+
 			// reader.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -329,13 +332,15 @@ public class OverviewWorker {
 		return runsOutput;
 	}
 
-	private void readMeasurements() {
+	private Map<Integer, Treatment> readMeasurements() {
+		Map<Integer, Treatment> treatments = new LinkedHashMap<>();
 		File fileA = new File(App.prop.getProperty("fileA.location"));
 		Scanner reader;
 		String line = "";
-		String[] numbers;
+		String[] numbers; // the numbers of that row of the table
 		Treatment treatment = new Treatment(-1);
 		Treatment newTreatment = new Treatment(-1);
+		Sampling meas = new Sampling("");
 
 		try {
 			if (fileA.exists()) {
@@ -350,6 +355,7 @@ public class OverviewWorker {
 					}
 
 					numbers = line.split(" ");
+					// if the line start with a number
 					if (numbers.length > 0 && Utils.isNumeric(numbers[0])) {
 						newTreatment = new Treatment(Integer.parseInt(numbers[0]));
 						if (!treatment.equals(newTreatment)) {
@@ -358,9 +364,15 @@ public class OverviewWorker {
 							App.log.warning("It is suppose to have only one sample per treatment " + numbers[0]);
 						}
 						
+						meas = new Sampling();
+						// fill the values on that row for all the variables
 						for (VariableLocation vl : locations) {
-							measured.put(vl.getVariable(), numbers[vl.getIndexFileA()]);
+							// add the measurement of each variable
+							meas.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexFileA()]));
 						}
+						// add the measurement with all the values for that in the treatment
+						treatment.getSamplings().add(meas);
+						treatments.put(treatment.getNumber(),treatment);
 					}
 				}
 
@@ -372,6 +384,8 @@ public class OverviewWorker {
 		} catch (FileNotFoundException e) {
 			App.log.severe("File A not found as " + fileA.getAbsolutePath());
 		}
+		
+		return treatments;
 	}
 
 	@Deprecated

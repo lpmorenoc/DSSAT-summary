@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import org.ciat.dssat_sum.model.VariableLocation;
-import org.ciat.dssat_sum.model.Measurement;
+import org.ciat.dssat_sum.model.Sampling;
 import org.ciat.dssat_sum.model.CropCode;
 import org.ciat.dssat_sum.model.ProgressBar;
 import org.ciat.dssat_sum.model.SummaryRun;
@@ -94,9 +94,9 @@ public class SeriesWorker {
 
 									if (sampleTreatment.equals(simulationTreatment)) { // when treatments matches
 										int sampleNumber = 0;
-										for (Measurement msample : sampleTreatment.getSamplings()) {
+										for (Sampling msample : sampleTreatment.getSamplings()) {
 											sampleNumber++;
-											for (Measurement msimule : simulationTreatment.getSamplings()) {
+											for (Sampling msimule : simulationTreatment.getSamplings()) {
 
 												if (msample.getDate().equals(msimule.getDate())) { // when dates matches
 													/* printing in CSV */
@@ -229,7 +229,7 @@ public class SeriesWorker {
 		String line = "";
 		String[] numbers;
 		Treatment t = new Treatment(-1);
-		Measurement m = new Measurement("");
+		Sampling m = new Sampling("");
 		int doy = 0;
 		int year = 0;
 		Calendar calendar = Calendar.getInstance();
@@ -265,7 +265,7 @@ public class SeriesWorker {
 						calendar.set(Calendar.MINUTE, 0);
 						calendar.set(Calendar.SECOND, 0);
 
-						m = new Measurement(SummaryRun.DATE_FORMAT.format(calendar.getTime()));
+						m = new Sampling(SummaryRun.DATE_FORMAT.format(calendar.getTime()));
 						for (VariableLocation vl : locations) {
 							m.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexPlantGro()]));
 						}
@@ -296,7 +296,7 @@ public class SeriesWorker {
 		String[] numbers;
 		Treatment treatment = new Treatment(-1);
 		Treatment newTreatment = new Treatment(-1);
-		Measurement m = new Measurement("");
+		Sampling meas = new Sampling("");
 		int doy = 0;
 		int year = 0;
 		Calendar calendar = Calendar.getInstance();
@@ -336,11 +336,14 @@ public class SeriesWorker {
 						calendar.set(Calendar.MINUTE, 0);
 						calendar.set(Calendar.SECOND, 0);
 
-						m = new Measurement(SummaryRun.DATE_FORMAT.format(calendar.getTime()));
+						meas = new Sampling(SummaryRun.DATE_FORMAT.format(calendar.getTime()));
+						// fill the values on that row for all the variables
 						for (VariableLocation vl : locations) {
-							m.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexFileT()]));
+							// add the measurement of each variable
+							meas.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexFileT()]));
 						}
-						treatment.getSamplings().add(m);
+						// add the sampling with all the values for that day in the treatment
+						treatment.getSamplings().add(meas);
 						treatments.add(treatment);
 
 					}

@@ -4,14 +4,19 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class Measurement {
+public class Sampling {
 	
 	private String date;
 	private Map<Variable, Double> values;
 
-	public Measurement(String date) {
+	public Sampling(String date) {
 		super();
 		this.date = date;
+		this.values = new LinkedHashMap<Variable, Double>();
+	}
+	
+	public Sampling() {
+		super();
 		this.values = new LinkedHashMap<Variable, Double>();
 	}
 
@@ -37,9 +42,9 @@ public class Measurement {
 			return false;
 		if (obj == this)
 			return true;
-		if (!(obj instanceof Measurement))
+		if (!(obj instanceof Sampling))
 			return false;
-		Measurement castedObj = (Measurement) obj;
+		Sampling castedObj = (Sampling) obj;
 		if (castedObj.date == this.date) {
 			return true;
 		} else {
