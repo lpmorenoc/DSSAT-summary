@@ -24,7 +24,7 @@ public class OverviewWorker {
 	private Map<Variable, String> growthLables;
 	private Map<Variable, String> measured;
 	private List<String> cropNSoilLables;
-	private List<VariableLocation> locations;// TODO
+	private List<VariableLocation> locations;
 	private SummaryRun run;
 
 	public enum fileSection {

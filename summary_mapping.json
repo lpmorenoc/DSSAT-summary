@@ -2,26 +2,26 @@
  "mappings" : {
   "sampling" : {
    "properties" : {
-    "RUN" : { "type": "integer", "index" : "true" },
-    "DATE" : { "type": "date", "format": "yyyy-MM-dd", "index" : "true" },
-    "TR" : { "type" : "integer" },
-	"M-LAID" : { "type" : "double" },
-    "S-LAID" : { "type" : "double" },
-	"M-CWAD" : { "type" : "double" },
-    "S-CWAD" : { "type" : "double" },
-	"M-LWAD" : { "type" : "double" },
-    "S-LWAD" : { "type" : "double" },
-	"M-GWAD" : { "type" : "double" },
-    "S-GWAD" : { "type" : "double" },
-	"M-HAID" : { "type" : "double" },
-    "S-HAID" : { "type" : "double" },
-	"P1" : { "type" : "double" },
-    "P2" : { "type" : "double" },
-	"P5" : { "type" : "double" },
-    "G2" : { "type" : "double" },
-	"G3" : { "type" : "double" },
-    "PHINT" : { "type" : "double" },
-	"id" : { "type" : "text", "index" : "true" }
+    "brute.RUN" : { "type": "integer", "index" : "true" },
+    "brute.DATE" : { "type": "date", "format": "yyyy-MM-dd", "index" : "true" },
+    "brute.TR" : { "type" : "integer" },
+	"brute.meas.LAID" : { "type" : "double" },
+    "brute.out.LAID" : { "type" : "double" },
+	"brute.meas.CWAD" : { "type" : "double" },
+    "brute.out.CWAD" : { "type" : "double" },
+	"brute.meas.LWAD" : { "type" : "double" },
+    "brute.out.LWAD" : { "type" : "double" },
+	"brute.meas.GWAD" : { "type" : "double" },
+    "brute.out.GWAD" : { "type" : "double" },
+	"brute.meas.HAID" : { "type" : "double" },
+    "brute.out.HAID" : { "type" : "double" },
+	"brute.in.P1" : { "type" : "double" },
+    "brute.in.P2" : { "type" : "double" },
+	"brute.in.P5" : { "type" : "double" },
+    "brute.in.G2" : { "type" : "double" },
+	"brute.in.G3" : { "type" : "double" },
+    "brute.in.PHINT" : { "type" : "double" },
+	"brute.id" : { "type" : "text", "index" : "true" }
    }
   }
  }

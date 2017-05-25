@@ -112,9 +112,9 @@ public class SeriesWorker {
 														JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
 														JSONWriter.newLine();
 														JSONWriter.write("{");
-														JSONWriter.write("\"" + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
-														JSONWriter.write("\"" + SummaryRun.DATE_LABEL + "\":\"" + msample.getDate() + "\",");
-														JSONWriter.write("\"" + SummaryRun.TREATMENT_LABEL + "\":" + sampleTreatment.getNumber() + ",");
+														JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
+														JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+SummaryRun.DATE_LABEL + "\":\"" + msample.getDate() + "\",");
+														JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+SummaryRun.TREATMENT_LABEL + "\":" + sampleTreatment.getNumber() + ",");
 													}
 
 													for (Variable var : msimule.getValues().keySet()) {
@@ -126,21 +126,21 @@ public class SeriesWorker {
 
 														/* printing in JSON */
 														if (j) {
-															JSONWriter.write("\"" + SummaryRun.MEASURED_PREFIX + var.getName() + "\":" + msample.getValues().get(var).doubleValue() + ",");
-															JSONWriter.write("\"" + SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + msimule.getValues().get(var).doubleValue() + ",");
+															JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+SummaryRun.MEASURED_PREFIX + var.getName() + "\":" + msample.getValues().get(var).doubleValue() + ",");
+															JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + msimule.getValues().get(var).doubleValue() + ",");
 														}
 													}
 													String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
 													for (int i = 0; i < values.length; i++) {
 														if (j) {
-															JSONWriter.write("\"" + inputCoeficientsNames[i] + "\":" + values[i] + ",");
+															JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+ SummaryRun.COEFFICIENT_PREFIX +inputCoeficientsNames[i] + "\":" + values[i] + ",");
 														}
 													}
 													if (c) {
 														CSVWriter.newLine();
 													}
 													if (j) {
-														JSONWriter.write("\"" + "id" + "\":\"" + id_ + "\"");
+														JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
 														JSONWriter.write("}");
 														JSONWriter.newLine();
 													}

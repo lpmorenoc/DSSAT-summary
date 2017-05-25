@@ -8,11 +8,13 @@ public class SummaryRun {
 	private CropCode model;
 	public static final String LINE_SEPARATOR = "\t";
 	public static final String PATH_SEPARATOR = "\\";
-	public static final String CANDIDATE_LABEL = "RUN";
-	public static final String DATE_LABEL = "DATE";
-	public static final String TREATMENT_LABEL = "TR";
-	public static final String MEASURED_PREFIX = "M_";
-	public static final String SIMULATED_PREFIX = "S_";
+	public static final String CANDIDATE_LABEL = "run";
+	public static final String DATE_LABEL = "date";
+	public static final String TREATMENT_LABEL = "treatment";
+	public static final String MEASURED_PREFIX = "meas.";
+	public static final String SIMULATED_PREFIX = "out.";
+	public static final String COEFFICIENT_PREFIX = "in.";
+	public static final String KIBANA_INDEX = "brute.";
 	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd"); // ISO 8601
 	private File overviewCSVOutput;
 	private File overviewJSONOutput;
