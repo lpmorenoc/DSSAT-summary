@@ -133,18 +133,16 @@ public class SeriesWorker {
 												}
 											}
 											String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
-											for (int i = 0; i < values.length; i++) {
-												if (j) {
+											if (j) {
+												for (int i = 0; i < values.length; i++) {
 													JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + values[i] + ",");
 												}
-											}
-											if (c) {
-												CSVWriter.newLine();
-											}
-											if (j) {
 												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
 												JSONWriter.write("}");
 												JSONWriter.newLine();
+											}
+											if (c) {
+												CSVWriter.newLine();
 											}
 										}
 									}
