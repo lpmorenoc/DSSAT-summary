@@ -27,6 +27,7 @@ public class OverviewWorker {
 	private List<VariableLocation> locations;
 	private SummaryRun run;
 	private Map<Integer,Treatment> treatments; 
+	private static final String NO_DATE= "NO_DATE";
 
 	public enum fileSection {
 		INIT(), CROP_N_SOIL, GROWTH, END
@@ -260,6 +261,7 @@ public class OverviewWorker {
 		String line = "";
 		fileSection flag = fileSection.INIT;
 		int treatment = 0;
+		
 		try (Scanner reader = new Scanner(cultivarOutput)) {
 
 			while (reader.hasNextLine()) { // reading the whole file
@@ -297,11 +299,10 @@ public class OverviewWorker {
 					for (Variable var : growthLables.keySet()) {
 						// if contains the string that corresponds to the variable
 						if (!line.isEmpty() && line.contains(growthLables.get(var))) {
-							for(Sampling measured:treatments.get(treatment).getSamplings()){
-							outputValues.put(SummaryRun.MEASURED_PREFIX + var.getName(), measured.getValues().get(var).doubleValue()+"");
+							outputValues.put(SummaryRun.MEASURED_PREFIX + var.getName(), treatments.get(treatment).getSamplings().get(NO_DATE).getValues().get(var).doubleValue()+"");
 							// get simulated value
 							outputValues.put(SummaryRun.SIMULATED_PREFIX + var.getName(), line.substring(57, 64)); }
-						}
+
 					}
 					// to detect the end of the treatment run
 					if (line.contains("----------------------------------------------------------------------------------------------------------------------------------------------------------------")) {
@@ -340,7 +341,7 @@ public class OverviewWorker {
 		String[] numbers; // the numbers of that row of the table
 		Treatment treatment = new Treatment(-1);
 		Treatment newTreatment = new Treatment(-1);
-		Sampling meas = new Sampling("");
+		Sampling meas = new Sampling();
 
 		try {
 			if (fileA.exists()) {
@@ -371,7 +372,7 @@ public class OverviewWorker {
 							meas.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexFileA()]));
 						}
 						// add the measurement with all the values for that in the treatment
-						treatment.getSamplings().add(meas);
+						treatment.getSamplings().put(NO_DATE,meas);
 						treatments.put(treatment.getNumber(),treatment);
 					}
 				}

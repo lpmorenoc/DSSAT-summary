@@ -1,18 +1,18 @@
 package org.ciat.dssat_sum.model;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class Treatment {
 
 	private int number;
-	private Set<Measurement> samplings;
+	private Map<String, Sampling> samplings;
 
 	public Treatment(int number) {
 		super();
 		this.setNumber(number);
-		samplings = new LinkedHashSet<>();
+		samplings = new LinkedHashMap<>();
 	}
 
 	public int getNumber() {
@@ -23,11 +23,11 @@ public class Treatment {
 		this.number = number;
 	}
 
-	public Set<Measurement> getSamplings() {
+	public Map<String, Sampling>  getSamplings() {
 		return samplings;
 	}
 
-	public void setSamplings(Set<Measurement> samplings) {
+	public void setSamplings(Map<String, Sampling>  samplings) {
 		this.samplings = samplings;
 	}
 

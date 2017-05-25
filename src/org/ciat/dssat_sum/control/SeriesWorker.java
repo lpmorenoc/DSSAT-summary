@@ -39,19 +39,20 @@ public class SeriesWorker {
 	public void work() {
 
 		locations = getVariables(run.getModel());
-		Set<Treatment> samplings = getSampleMeasurements();
-		Set<Treatment> simulations = new LinkedHashSet<>();
+		Map<Integer, Treatment> samplings = getSampleMeasurements();
+		Map<Integer, Treatment> simulations = new LinkedHashMap<Integer, Treatment>();
 		inputCoeficients = new LinkedHashMap<>();
 		ProgressBar bar = new ProgressBar();
 		int subFolderIndex = 0;
 		DecimalFormat df = new DecimalFormat("00");
 		String id_ = "";
+		double measured, simulated;
 
 		File CSV = run.getSummaryCSVOutput();
 		File JSON = run.getSummaryJSONOutput();
 
-		boolean c = App.prop.getProperty("output.summary.csv").contains("Y");
-		boolean j = App.prop.getProperty("output.summary.json").contains("Y");
+		boolean c = App.prop.getProperty("output.summary.csv").contains("Y"); // check if user wants output in CSV
+		boolean j = App.prop.getProperty("output.summary.json").contains("Y"); // check if user wants output in JSON
 
 		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON));) {
 
@@ -89,69 +90,64 @@ public class SeriesWorker {
 							simulations = getSimulatedMeasurements(output); // get simulated values for that run
 
 							// print full file
-							for (Treatment sampleTreatment : samplings) {
-								for (Treatment simulationTreatment : simulations) {
+							for (Integer tIndex : samplings.keySet()) {
+								int sampleNumber = 0;
+								for (String date : samplings.get(tIndex).getSamplings().keySet()) {
+									sampleNumber++;
 
-									if (sampleTreatment.equals(simulationTreatment)) { // when treatments matches
-										int sampleNumber = 0;
-										for (Sampling msample : sampleTreatment.getSamplings()) {
-											sampleNumber++;
-											for (Sampling msimule : simulationTreatment.getSamplings()) {
+									if (c) {
+										CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
+										CSVWriter.write(date + SummaryRun.LINE_SEPARATOR);
+										CSVWriter.write(tIndex.intValue() + SummaryRun.LINE_SEPARATOR);
+									}
 
-												if (msample.getDate().equals(msimule.getDate())) { // when dates matches
-													/* printing in CSV */
-													if (c) {
-														CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
-														CSVWriter.write(msample.getDate() + SummaryRun.LINE_SEPARATOR);
-														CSVWriter.write(sampleTreatment.getNumber() + SummaryRun.LINE_SEPARATOR);
-													}
+									/* printing in JSON */
+									id_ = df.format(tIndex.intValue()) + df.format(sampleNumber) + subFolder.getName();
+									if (j) {
+										JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
+										JSONWriter.newLine();
+										JSONWriter.write("{");
+										JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
+										JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.DATE_LABEL + "\":\"" + date + "\",");
+										JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.TREATMENT_LABEL + "\":" + tIndex.intValue() + ",");
+									}
 
-													/* printing in JSON */
-													id_ = df.format(sampleTreatment.getNumber()) + df.format(sampleNumber) + subFolder.getName();
-													if (j) {
-														JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
-														JSONWriter.newLine();
-														JSONWriter.write("{");
-														JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
-														JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+SummaryRun.DATE_LABEL + "\":\"" + msample.getDate() + "\",");
-														JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+SummaryRun.TREATMENT_LABEL + "\":" + sampleTreatment.getNumber() + ",");
-													}
+									for (Variable var : samplings.get(tIndex).getSamplings().get(date).getValues().keySet()) {
+										if (simulations.get(tIndex.intValue()) != null) {
+											if (simulations.get(tIndex.intValue()).getSamplings().get(date) != null) {
+												measured = samplings.get(tIndex.intValue()).getSamplings().get(date).getValues().get(var).doubleValue();
+												simulated = simulations.get(tIndex.intValue()).getSamplings().get(date).getValues().get(var).doubleValue();
+												/* printing in CSV */
+												if (c) {
+													CSVWriter.write(measured + SummaryRun.LINE_SEPARATOR);
+													CSVWriter.write(simulated + SummaryRun.LINE_SEPARATOR);
+												}
 
-													for (Variable var : msimule.getValues().keySet()) {
-														/* printing in CSV */
-														if (c) {
-															CSVWriter.write(msample.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
-															CSVWriter.write(msimule.getValues().get(var).doubleValue() + SummaryRun.LINE_SEPARATOR);
-														}
-
-														/* printing in JSON */
-														if (j) {
-															JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+SummaryRun.MEASURED_PREFIX + var.getName() + "\":" + msample.getValues().get(var).doubleValue() + ",");
-															JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + msimule.getValues().get(var).doubleValue() + ",");
-														}
-													}
-													String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
-													for (int i = 0; i < values.length; i++) {
-														if (j) {
-															JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX+ SummaryRun.COEFFICIENT_PREFIX +inputCoeficientsNames[i] + "\":" + values[i] + ",");
-														}
-													}
-													if (c) {
-														CSVWriter.newLine();
-													}
-													if (j) {
-														JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
-														JSONWriter.write("}");
-														JSONWriter.newLine();
-													}
-
+												/* printing in JSON */
+												if (j) {
+													JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.MEASURED_PREFIX + var.getName() + "\":" + measured + ",");
+													JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + simulated + ",");
 												}
 											}
 										}
-
+										String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
+										for (int i = 0; i < values.length; i++) {
+											if (j) {
+												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + values[i] + ",");
+											}
+										}
+										if (c) {
+											CSVWriter.newLine();
+										}
+										if (j) {
+											JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
+											JSONWriter.write("}");
+											JSONWriter.newLine();
+										}
 									}
+
 								}
-								// bwriter.flush();
+
 							}
 
 						} else {
@@ -223,13 +219,13 @@ public class SeriesWorker {
 		}
 	}
 
-	private Set<Treatment> getSimulatedMeasurements(File plantGro) {
-		Set<Treatment> treatments = new LinkedHashSet<>();
+	private Map<Integer, Treatment> getSimulatedMeasurements(File plantGro) {
+		Map<Integer, Treatment> treatments = new LinkedHashMap<>();
 
 		String line = "";
 		String[] numbers;
 		Treatment t = new Treatment(-1);
-		Sampling m = new Sampling("");
+		Sampling m = new Sampling();
 		int doy = 0;
 		int year = 0;
 		Calendar calendar = Calendar.getInstance();
@@ -265,12 +261,11 @@ public class SeriesWorker {
 						calendar.set(Calendar.MINUTE, 0);
 						calendar.set(Calendar.SECOND, 0);
 
-						m = new Sampling(SummaryRun.DATE_FORMAT.format(calendar.getTime()));
 						for (VariableLocation vl : locations) {
 							m.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexPlantGro()]));
 						}
-						t.getSamplings().add(m);
-						treatments.add(t);
+						t.getSamplings().put(SummaryRun.DATE_FORMAT.format(calendar.getTime()), m);
+						treatments.put(t.getNumber(), t);
 					}
 
 				}
@@ -288,15 +283,15 @@ public class SeriesWorker {
 
 	}
 
-	private Set<Treatment> getSampleMeasurements() {
-		Set<Treatment> treatments = new LinkedHashSet<>();
+	private Map<Integer, Treatment> getSampleMeasurements() {
+		Map<Integer, Treatment> treatments = new LinkedHashMap<>();
 		File fileT = new File(App.prop.getProperty("fileT.location"));
 		Scanner reader;
 		String line = "";
 		String[] numbers;
 		Treatment treatment = new Treatment(-1);
 		Treatment newTreatment = new Treatment(-1);
-		Sampling meas = new Sampling("");
+		Sampling meas = new Sampling();
 		int doy = 0;
 		int year = 0;
 		Calendar calendar = Calendar.getInstance();
@@ -336,15 +331,15 @@ public class SeriesWorker {
 						calendar.set(Calendar.MINUTE, 0);
 						calendar.set(Calendar.SECOND, 0);
 
-						meas = new Sampling(SummaryRun.DATE_FORMAT.format(calendar.getTime()));
+						meas = new Sampling();
 						// fill the values on that row for all the variables
 						for (VariableLocation vl : locations) {
 							// add the measurement of each variable
 							meas.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexFileT()]));
 						}
 						// add the sampling with all the values for that day in the treatment
-						treatment.getSamplings().add(meas);
-						treatments.add(treatment);
+						treatment.getSamplings().put(SummaryRun.DATE_FORMAT.format(calendar.getTime()), meas);
+						treatments.put(treatment.getNumber(), treatment);
 
 					}
 
