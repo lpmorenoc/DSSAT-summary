@@ -92,29 +92,32 @@ public class SeriesWorker {
 							// print full file
 							for (Integer tIndex : samplings.keySet()) {
 								int sampleNumber = 0;
+
 								for (String date : samplings.get(tIndex).getSamplings().keySet()) {
 									sampleNumber++;
+									
+									//check if the treatment was simulated
+									if (simulations.get(tIndex.intValue()) != null) { 
+										// check if that date was simulated
+										if (simulations.get(tIndex.intValue()).getSamplings().get(date) != null) {
+											
+											if (c) {
+												CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
+												CSVWriter.write(date + SummaryRun.LINE_SEPARATOR);
+												CSVWriter.write(tIndex.intValue() + SummaryRun.LINE_SEPARATOR);
+											}
 
-									if (c) {
-										CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
-										CSVWriter.write(date + SummaryRun.LINE_SEPARATOR);
-										CSVWriter.write(tIndex.intValue() + SummaryRun.LINE_SEPARATOR);
-									}
-
-									/* printing in JSON */
-									id_ = df.format(tIndex.intValue()) + df.format(sampleNumber) + subFolder.getName();
-									if (j) {
-										JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
-										JSONWriter.newLine();
-										JSONWriter.write("{");
-										JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
-										JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.DATE_LABEL + "\":\"" + date + "\",");
-										JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.TREATMENT_LABEL + "\":" + tIndex.intValue() + ",");
-									}
-
-									for (Variable var : samplings.get(tIndex).getSamplings().get(date).getValues().keySet()) {
-										if (simulations.get(tIndex.intValue()) != null) {
-											if (simulations.get(tIndex.intValue()).getSamplings().get(date) != null) {
+											/* printing in JSON */
+											id_ = df.format(tIndex.intValue()) + df.format(sampleNumber) + subFolder.getName();
+											if (j) {
+												JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
+												JSONWriter.newLine();
+												JSONWriter.write("{");
+												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
+												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.DATE_LABEL + "\":\"" + date + "\",");
+												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.TREATMENT_LABEL + "\":" + tIndex.intValue() + ",");
+											}
+											for (Variable var : samplings.get(tIndex).getSamplings().get(date).getValues().keySet()) {
 												measured = samplings.get(tIndex.intValue()).getSamplings().get(date).getValues().get(var).doubleValue();
 												simulated = simulations.get(tIndex.intValue()).getSamplings().get(date).getValues().get(var).doubleValue();
 												/* printing in CSV */
@@ -129,20 +132,20 @@ public class SeriesWorker {
 													JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + simulated + ",");
 												}
 											}
-										}
-										String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
-										for (int i = 0; i < values.length; i++) {
-											if (j) {
-												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + values[i] + ",");
+											String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
+											for (int i = 0; i < values.length; i++) {
+												if (j) {
+													JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + values[i] + ",");
+												}
 											}
-										}
-										if (c) {
-											CSVWriter.newLine();
-										}
-										if (j) {
-											JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
-											JSONWriter.write("}");
-											JSONWriter.newLine();
+											if (c) {
+												CSVWriter.newLine();
+											}
+											if (j) {
+												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
+												JSONWriter.write("}");
+												JSONWriter.newLine();
+											}
 										}
 									}
 
