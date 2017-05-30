@@ -7,7 +7,7 @@ import java.util.Objects;
 public class Treatment {
 
 	private int number;
-	private Map<String, Sampling> samplings;
+	private Map<String, Sampling> samplings; // the key is for a normalized date
 
 	public Treatment(int number) {
 		super();
