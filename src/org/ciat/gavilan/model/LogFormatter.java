@@ -1,4 +1,4 @@
-package org.ciat.dssat_sum.model;
+package org.ciat.gavilan.model;
 
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;

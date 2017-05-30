@@ -1,9 +1,10 @@
-package org.ciat.dssat_sum.control;
+package org.ciat.gavilan.control;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import org.ciat.dssat_sum.control.OverviewWorker;
-import org.ciat.dssat_sum.model.SummaryRun;
+
+import org.ciat.gavilan.control.OverviewWorker;
+import org.ciat.gavilan.model.SummaryRun;
 
 public class RunConfig {
 	private SummaryRun run;

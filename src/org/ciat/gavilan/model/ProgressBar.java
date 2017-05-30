@@ -1,4 +1,4 @@
-package org.ciat.dssat_sum.model;
+package org.ciat.gavilan.model;
 
 /**@author c00kiemon5ter
  * Ascii progress meter. On completion this will reset itself,

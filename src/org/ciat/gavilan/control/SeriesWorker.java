@@ -1,4 +1,4 @@
-package org.ciat.dssat_sum.control;
+package org.ciat.gavilan.control;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -15,14 +15,15 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-import org.ciat.dssat_sum.model.VariableLocation;
-import org.ciat.dssat_sum.model.Sampling;
-import org.ciat.dssat_sum.model.CropCode;
-import org.ciat.dssat_sum.model.ProgressBar;
-import org.ciat.dssat_sum.model.SummaryRun;
-import org.ciat.dssat_sum.model.Treatment;
-import org.ciat.dssat_sum.model.Utils;
-import org.ciat.dssat_sum.model.Variable;
+
+import org.ciat.gavilan.model.CropCode;
+import org.ciat.gavilan.model.ProgressBar;
+import org.ciat.gavilan.model.Sampling;
+import org.ciat.gavilan.model.SummaryRun;
+import org.ciat.gavilan.model.Treatment;
+import org.ciat.gavilan.model.Utils;
+import org.ciat.gavilan.model.Variable;
+import org.ciat.gavilan.model.VariableLocation;
 
 public class SeriesWorker {
 
@@ -41,7 +42,7 @@ public class SeriesWorker {
 		locations = getVariables(run.getModel());
 		Map<Integer, Treatment> samplings = getSampleMeasurements();
 		Map<Integer, Treatment> simulations = new LinkedHashMap<Integer, Treatment>();
-		inputCoeficients = new LinkedHashMap<>();
+		inputCoeficients = new LinkedHashMap<Integer, String>();
 		ProgressBar bar = new ProgressBar();
 		int subFolderIndex = 0;
 		DecimalFormat df = new DecimalFormat("00");

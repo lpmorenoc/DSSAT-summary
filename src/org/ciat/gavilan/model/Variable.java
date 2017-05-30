@@ -1,4 +1,4 @@
-package org.ciat.dssat_sum.model;
+package org.ciat.gavilan.model;
 
 public class Variable {
 

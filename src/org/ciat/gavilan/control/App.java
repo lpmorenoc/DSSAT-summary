@@ -1,4 +1,4 @@
-package org.ciat.dssat_sum.control;
+package org.ciat.gavilan.control;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,9 +12,9 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.ciat.dssat_sum.control.OverviewWorker;
-import org.ciat.dssat_sum.control.RunConfig;
-import org.ciat.dssat_sum.model.LogFormatter;
+import org.ciat.gavilan.control.OverviewWorker;
+import org.ciat.gavilan.control.RunConfig;
+import org.ciat.gavilan.model.LogFormatter;
 
 public class App {
 
