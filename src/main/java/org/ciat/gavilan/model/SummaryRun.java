@@ -20,6 +20,8 @@ public class SummaryRun {
 	private File overviewJSONOutput;
 	private File summaryCSVOutput;
 	private File summaryJSONOutput;
+	private File summaryEvalOutput;
+
 
 
 	public SummaryRun(String crop, String cropCode, String runName) {
@@ -29,6 +31,7 @@ public class SummaryRun {
 		this.overviewJSONOutput = new File(runName + "_overview.json");
 		this.summaryCSVOutput = new File(runName + "_summary.csv");
 		this.summaryJSONOutput = new File(runName + "_summary.json");
+		this.summaryEvalOutput = new File(runName + "_eval.json");
 	}
 	
 
@@ -54,6 +57,10 @@ public class SummaryRun {
 
 	public File getOverviewJSONOutput() {
 		return overviewJSONOutput;
+	}
+
+	public File getSummaryEvalOutput() {
+		return summaryEvalOutput;
 	}
 
 

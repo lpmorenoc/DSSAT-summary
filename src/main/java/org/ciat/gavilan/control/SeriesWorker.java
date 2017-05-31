@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.ciat.gavilan.model.CropCode;
+import org.ciat.gavilan.model.ErrorEvaluator;
 import org.ciat.gavilan.model.Measurements;
 import org.ciat.gavilan.model.SummaryRun;
 import org.ciat.gavilan.model.Treatment;
@@ -51,20 +52,25 @@ public class SeriesWorker {
 
 		File CSV = run.getSummaryCSVOutput();
 		File JSON = run.getSummaryJSONOutput();
+		File Eval = run.getSummaryEvalOutput();
 
-		boolean isCSV = App.prop.getProperty("output.summary.csv").contains("Y"); // check if user wants output in CSV
-		boolean isJSON = App.prop.getProperty("output.summary.json").contains("Y"); // check if user wants output in
-																					// JSON
-
+		// check if user wants output in CSV
+		boolean isCSV = App.prop.getProperty("output.summary.csv").contains("Y");
+		// check if user wants output in JSON
+		boolean isJSON = App.prop.getProperty("output.summary.json").contains("Y");
+		// check if user wants evaluation
 		File cul = new File(App.prop.getProperty("crop.name") + ".CUL");
-		boolean isCUL = cul.exists();
-		if (isCUL) {
-			populateInputCoeficients(cul);
-		} else {
-			App.log.warning("Cultivar file not found " + cul.getAbsolutePath());
+		boolean isCUL = false;
+		if (App.prop.getProperty("output.eval.json").contains("Y")) {
+			if (cul.exists()) {
+				isCUL=true;
+				populateInputCoeficients(cul);
+			} else {
+				App.log.warning("Cultivar file not found " + cul.getAbsolutePath());
+			}
 		}
 
-		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON));) {
+		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON));BufferedWriter EvalWriter = new BufferedWriter(new PrintWriter(Eval));) {
 
 			/* Building the header */
 			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.DATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
@@ -101,14 +107,24 @@ public class SeriesWorker {
 							for (Integer tIndex : samplings.keySet()) {
 								int sampleNumber = 0;
 
+								int y=samplings.get(tIndex).getMeasurements().size();
+								int x=samplings.get(tIndex).getMeasurements().get(samplings.get(tIndex).getMeasurements().keySet().iterator().next()).getValues().size();
+								Double[][] matrixObservations = new Double[y][x];
+								Double[][] matrixCalculations = new Double[y][x];
+								String[] varNames = new String[y]; 
+								int j = -1;
+
+								// for each sampling
 								for (String date : samplings.get(tIndex).getMeasurements().keySet()) {
 									sampleNumber++;
+									j++;
+									int k=-1;
 
 									// check if the treatment was simulated
 									if (simulations.get(tIndex.intValue()) != null) {
 										// check if that date was simulated
 										if (simulations.get(tIndex.intValue()).getMeasurements().get(date) != null) {
-											
+
 											/* printing base data in CSV */
 											if (isCSV) {
 												CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
@@ -128,9 +144,15 @@ public class SeriesWorker {
 												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.DATE_LABEL + "\":\"" + date + "\",");
 												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.TREATMENT_LABEL + "\":" + tIndex.intValue() + ",");
 											}
+
 											for (Variable var : samplings.get(tIndex).getMeasurements().get(date).getValues().keySet()) {
 												measured = samplings.get(tIndex.intValue()).getMeasurements().get(date).getValues().get(var).doubleValue();
 												simulated = simulations.get(tIndex.intValue()).getMeasurements().get(date).getValues().get(var).doubleValue();
+
+												k++;
+												matrixObservations[j][k] = measured;
+												matrixCalculations[j][k] = simulated;
+												varNames[k]= var.getName();
 
 												/* printing plantGro and file T values in CSV */
 												if (isCSV) {
@@ -145,14 +167,7 @@ public class SeriesWorker {
 												}
 											}
 											if (isJSON) {
-												if (isCUL) { // if the cultivar file is present
-													String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
-													for (int i = 0; i < values.length; i++) {
-														/* printing coefficients values in JSON */
-														JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + values[i] + ",");
-													}
-												}
-												/* closing JSON line*/
+												/* closing JSON line */
 												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
 												JSONWriter.write("}");
 												JSONWriter.newLine();
@@ -164,7 +179,37 @@ public class SeriesWorker {
 									}
 
 								}
-
+								
+								if (isCUL) { // if the cultivar file is present
+									id_= df.format(tIndex.intValue()) + subFolder.getName();
+									EvalWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"evaluation\",\"_id\":" + Long.parseLong(id_) + "}}");
+									EvalWriter.newLine();
+									/* printing coefficients evaluation data */
+									EvalWriter.write("{");
+									EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
+									EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.TREATMENT_LABEL + "\":" + tIndex.intValue() + ",");
+									String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
+									for (int i = 0; i < values.length; i++) {
+										/* printing coefficients values in JSON */
+										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + values[i] + ",");
+									}
+									for(int m=0;m<x;m++){
+										Double[] observed=new Double[y];
+										Double[] calculated=new Double[y];
+										for(int n=0;n<y;n++){
+											observed[n]=matrixObservations[n][m];
+											calculated[n]=matrixCalculations[n][m];
+										}
+										
+										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[m] + ".rmse\":" + ErrorEvaluator.RMSE(observed, calculated)+ ",");
+										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[m] + ".nse\":" + ErrorEvaluator.NSE(observed, calculated)+ ",");
+										
+									}
+									/* closing JSON line */
+									EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
+									EvalWriter.write("}");
+									EvalWriter.newLine();
+								}
 							}
 
 						} else {

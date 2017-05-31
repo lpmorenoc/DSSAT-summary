@@ -2,38 +2,50 @@ package org.ciat.gavilan.model;
 
 public class ErrorEvaluator {
 
-	public static double RMSE(Double[] observed, Double[] simulated) {
+	public static double RMSE(Double[] observed, Double[] calculated) {
 		double rmse = 0.0;
+		double n = 0;
 
 		for (int i = 0; i < observed.length; i++) {
-			rmse += Math.pow((observed[i] - simulated[i]), 2); // Sum (O-P)^2
+			if (isOK(observed[i]) && isOK(calculated[i])) {
+				rmse += Math.pow((observed[i] - calculated[i]), 2); // Sum (O-P)^2
+				n++;
+			}
 		}
 
-		rmse /= observed.length; // Sum (O-P)^2 / N
+		rmse /= n; // Sum (O-P)^2 / N
 		rmse = Math.sqrt(rmse); // SQRT (Sum (O-P)^2 / N)
 
 		return rmse;
 	}
 
-	public static double NSE(Double[] observed, Double[] simulated) {
+	public static double NSE(Double[] observed, Double[] calculated) {
 		double nse = 0.0; // NSE
-		double rmse = 0.0; // RMSE
 		double sd = 0.0; // standard deviations
 		double o_avg = 0.0; // average of observed
+		double n = 0;
 
 		for (int i = 0; i < observed.length; i++) {
-			nse += Math.pow((observed[i] - simulated[i]), 2); // Sum (O-P)^2
-			o_avg += observed[i];
+			if (isOK(observed[i])) {
+				o_avg += observed[i];
+				n++;
+			}
 		}
-		o_avg /= observed.length; // (Sum O)/N
+		
+		o_avg /= n; // (Sum O)/N
 
 		for (int i = 0; i < observed.length; i++) {
-			// Sum (O-O_avg)^2
-			sd += Math.pow((observed[i] - o_avg), 2);
+			if (isOK(observed[i])) {
+				sd += Math.pow((observed[i] - o_avg), 2); // Sum (O-O_avg)^2
+			}
 		}
-		nse = 1 - (rmse / sd);
+		nse = 1 - Math.pow((RMSE(observed, calculated) / Math.sqrt(sd)),2);
 
 		return nse;
+	}
+
+	private static boolean isOK(Double value) {
+		return value != null && value != -99 && value != 0;
 	}
 
 }
