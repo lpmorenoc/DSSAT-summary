@@ -18,7 +18,6 @@
 		<jodatime.version>2.5</jodatime.version>
 		<junit.version>4.11</junit.version>
 		<log4j.version>1.2.17</log4j.version>
-	<moeaframework.version>2.12</moeaframework.version>
 	</properties>
 	
 	
@@ -38,11 +37,6 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>${log4j.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.moeaframework</groupId>
-			<artifactId>moeaframework</artifactId>
-			<version>${moeaframework.version}</version>
 		</dependency>
 	</dependencies>
 	
@@ -85,7 +79,7 @@
 					<archive>
 					<manifest>
 						<!-- Jar file entry point -->
-						<mainClass>main.org.ciat.gavilan.control.App</mainClass>
+						<mainClass>org.ciat.gavilan.control.App</mainClass>
 					</manifest>
 					</archive>
 				</configuration>

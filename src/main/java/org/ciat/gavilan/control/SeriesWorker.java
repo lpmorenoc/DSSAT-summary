@@ -52,12 +52,19 @@ public class SeriesWorker {
 		File CSV = run.getSummaryCSVOutput();
 		File JSON = run.getSummaryJSONOutput();
 
-		boolean c = App.prop.getProperty("output.summary.csv").contains("Y"); // check if user wants output in CSV
-		boolean j = App.prop.getProperty("output.summary.json").contains("Y"); // check if user wants output in JSON
+		boolean isCSV = App.prop.getProperty("output.summary.csv").contains("Y"); // check if user wants output in CSV
+		boolean isJSON = App.prop.getProperty("output.summary.json").contains("Y"); // check if user wants output in
+																					// JSON
+
+		File cul = new File(App.prop.getProperty("crop.name") + ".CUL");
+		boolean isCUL = cul.exists();
+		if (isCUL) {
+			populateInputCoeficients(cul);
+		} else {
+			App.log.warning("Cultivar file not found " + cul.getAbsolutePath());
+		}
 
 		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON));) {
-
-			populateInputCoeficients();
 
 			/* Building the header */
 			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.DATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
@@ -67,7 +74,7 @@ public class SeriesWorker {
 				head += SummaryRun.SIMULATED_PREFIX + var.getName() + SummaryRun.LINE_SEPARATOR;
 			}
 
-			if (c) {
+			if (isCSV) {
 				CSVWriter.write(head);
 				CSVWriter.newLine();
 			}
@@ -101,18 +108,21 @@ public class SeriesWorker {
 									if (simulations.get(tIndex.intValue()) != null) {
 										// check if that date was simulated
 										if (simulations.get(tIndex.intValue()).getMeasurements().get(date) != null) {
-
-											if (c) {
+											
+											/* printing base data in CSV */
+											if (isCSV) {
 												CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
 												CSVWriter.write(date + SummaryRun.LINE_SEPARATOR);
 												CSVWriter.write(tIndex.intValue() + SummaryRun.LINE_SEPARATOR);
 											}
 
-											/* printing in JSON */
+											/* printing base data in JSON */
 											id_ = df.format(tIndex.intValue()) + df.format(sampleNumber) + subFolder.getName();
-											if (j) {
+											if (isJSON) {
+												/* printing elastic-search meta-fields */
 												JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
 												JSONWriter.newLine();
+												/* printing run data */
 												JSONWriter.write("{");
 												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
 												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.DATE_LABEL + "\":\"" + date + "\",");
@@ -122,28 +132,32 @@ public class SeriesWorker {
 												measured = samplings.get(tIndex.intValue()).getMeasurements().get(date).getValues().get(var).doubleValue();
 												simulated = simulations.get(tIndex.intValue()).getMeasurements().get(date).getValues().get(var).doubleValue();
 
-												/* printing in CSV */
-												if (c) {
+												/* printing plantGro and file T values in CSV */
+												if (isCSV) {
 													CSVWriter.write(measured + SummaryRun.LINE_SEPARATOR);
 													CSVWriter.write(simulated + SummaryRun.LINE_SEPARATOR);
 												}
 
-												/* printing in JSON */
-												if (j) {
+												/* printing plantGro and file T values in JSON */
+												if (isJSON) {
 													JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.MEASURED_PREFIX + var.getName() + "\":" + measured + ",");
 													JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.SIMULATED_PREFIX + var.getName() + "\":" + simulated + ",");
 												}
 											}
-											String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
-											if (j) {
-												for (int i = 0; i < values.length; i++) {
-													JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + values[i] + ",");
+											if (isJSON) {
+												if (isCUL) { // if the cultivar file is present
+													String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
+													for (int i = 0; i < values.length; i++) {
+														/* printing coefficients values in JSON */
+														JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + values[i] + ",");
+													}
 												}
+												/* closing JSON line*/
 												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
 												JSONWriter.write("}");
 												JSONWriter.newLine();
 											}
-											if (c) {
+											if (isCSV) {
 												CSVWriter.newLine();
 											}
 										}
@@ -181,44 +195,46 @@ public class SeriesWorker {
 
 	}
 
-	private void populateInputCoeficients() {
+	private void populateInputCoeficients(File cul) {
 
-		try (BufferedReader inHead = new BufferedReader(new InputStreamReader(new FileInputStream(App.prop.getProperty("crop.name") + ".CUL")))) {
-			String line = "";
-			int indexVars = 0;
-			while ((line = inHead.readLine()) != null) {
-				// if header populate variables names
-				if (line.contains("ECO#")) {
+		if (cul.exists()) {
+			try (BufferedReader inHead = new BufferedReader(new InputStreamReader(new FileInputStream(cul)))) {
+				String line = "";
+				int indexVars = 0;
+				while ((line = inHead.readLine()) != null) {
+					// if header populate variables names
+					if (line.contains("ECO#")) {
 
-					indexVars = line.replaceAll("ECO#", "ECO;").indexOf(";") + 1;
+						indexVars = line.replaceAll("ECO#", "ECO;").indexOf(";") + 1;
 
-					line = line.split("#")[2];
-					/* Leave the line with only one space of separation */
-					while (line.contains("  ")) {
-						line = line.replaceAll("  ", " ");
-					}
-					line = line.trim();
-
-					inputCoeficientsNames = line.split(" "); // divide in spaces
-				} else {
-					String first = line.split(" ")[0];
-
-					if (Utils.isNumeric(first)) {
-						line = line.substring(indexVars);
-						line = line.replaceAll("#", "");
+						line = line.split("#")[2];
 						/* Leave the line with only one space of separation */
 						while (line.contains("  ")) {
 							line = line.replaceAll("  ", " ");
 						}
 						line = line.trim();
-						inputCoeficients.put(Integer.parseInt(first), line);
 
+						inputCoeficientsNames = line.split(" "); // divide in spaces
+					} else {
+						String first = line.split(" ")[0];
+
+						if (Utils.isNumeric(first)) {
+							line = line.substring(indexVars);
+							line = line.replaceAll("#", "");
+							/* Leave the line with only one space of separation */
+							while (line.contains("  ")) {
+								line = line.replaceAll("  ", " ");
+							}
+							line = line.trim();
+							inputCoeficients.put(Integer.parseInt(first), line);
+
+						}
 					}
-				}
 
+				}
+			} catch (IOException e) {
+				App.log.severe("File not found " + App.prop.getProperty("crop.name") + ".CUL");
 			}
-		} catch (IOException e) {
-			App.log.severe("File not found " + App.prop.getProperty("crop.name") + ".CUL");
 		}
 	}
 
@@ -350,8 +366,8 @@ public class SeriesWorker {
 								Variable var = new Variable(numbers[i]);
 								if (indexPlantGro.containsKey(var)) {
 									indexFileT.put(var, Integer.valueOf(i));
-								}else{
-									App.log.warning("The variable '"+var+"' is not an output in the PlantGro.OUT, please check this name in your file T");
+								} else {
+									App.log.warning("The variable '" + var + "' is not an output in the PlantGro.OUT, please check this name in your file T");
 								}
 							}
 						}
@@ -380,7 +396,7 @@ public class SeriesWorker {
 			vars.put(new Variable("CWAD"), 12);
 			vars.put(new Variable("LWAD"), 7);
 			vars.put(new Variable("GWAD"), 9);
-			vars.put(new Variable("HAID"), 15);
+			vars.put(new Variable("HIAD"), 15);
 			vars.put(new Variable("L#SD"), 4);
 
 		}
@@ -391,7 +407,7 @@ public class SeriesWorker {
 			vars.put(new Variable("CWAD"), 12);
 			vars.put(new Variable("LWAD"), 7);
 			vars.put(new Variable("GWAD"), 9);
-			vars.put(new Variable("HAID"), 15);
+			vars.put(new Variable("HIAD"), 15);
 			vars.put(new Variable("L#SD"), 4);
 		}
 			break;

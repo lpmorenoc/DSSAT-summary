@@ -265,7 +265,7 @@ public class OverviewWorker {
 					break;
 				case GROWTH: {
 
-					for (Variable var : growthLables.keySet()) {
+					for (Variable var : indexFileA.keySet()) {
 						// if contains the string that corresponds to the variable
 						if (!line.isEmpty() && line.contains(growthLables.get(var))) {
 							outputValues.put(SummaryRun.MEASURED_PREFIX + var.getName(), treatments.get(treatment).getMeasurements().get(NO_DATE).getValues().get(var).doubleValue() + "");
@@ -348,8 +348,14 @@ public class OverviewWorker {
 					} else {
 						if (numbers[0].equals("@TRNO")) {
 							for (int i = 1; i < numbers.length; i++) {
+
 								Variable var = new Variable(numbers[i]);
-								indexFileA.put(var, Integer.valueOf(i));
+								if (growthLables.containsKey(var)) {
+									indexFileA.put(var, Integer.valueOf(i));
+								} else {
+									App.log.warning("The variable '" + var + "' is not an output in the OVERVIEW.OUT, please check this name in your file T");
+								}
+							
 							}
 						}
 					}
