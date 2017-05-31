@@ -7,7 +7,7 @@ import java.util.Objects;
 public class Treatment {
 
 	private int number;
-	private Map<String, Sampling> samplings; // the key is for a normalized date
+	private Map<String, Measurements> samplings; // the key is for a normalized date
 
 	public Treatment(int number) {
 		super();
@@ -23,11 +23,11 @@ public class Treatment {
 		this.number = number;
 	}
 
-	public Map<String, Sampling>  getSamplings() {
+	public Map<String, Measurements>  getMeasurements() {
 		return samplings;
 	}
 
-	public void setSamplings(Map<String, Sampling>  samplings) {
+	public void setMeasurements(Map<String, Measurements>  samplings) {
 		this.samplings = samplings;
 	}
 

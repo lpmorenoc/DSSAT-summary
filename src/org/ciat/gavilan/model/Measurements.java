@@ -3,11 +3,11 @@ package org.ciat.gavilan.model;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class Sampling {
+public class Measurements {
 	
 	private Map<Variable, Double> values;
 
-	public Sampling() {
+	public Measurements() {
 		super();
 		this.values = new LinkedHashMap<Variable, Double>();
 	}

@@ -12,22 +12,21 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.ciat.gavilan.model.ProgressBar;
-import org.ciat.gavilan.model.Sampling;
+import org.ciat.gavilan.model.Measurements;
 import org.ciat.gavilan.model.SummaryRun;
 import org.ciat.gavilan.model.Treatment;
 import org.ciat.gavilan.model.Utils;
 import org.ciat.gavilan.model.Variable;
-import org.ciat.gavilan.model.VariableLocation;
 
 public class OverviewWorker {
 
 	private Map<String, String> outputValues;
 	private Map<Variable, String> growthLables;
+	private Map<Variable, Integer> indexFileA;
 	private List<String> cropNSoilLables;
-	private List<VariableLocation> locations;
 	private SummaryRun run;
-	private Map<Integer,Treatment> treatments; 
-	private static final String NO_DATE= "NO_DATE";
+	private Map<Integer, Treatment> treatments;
+	private static final String NO_DATE = "NO_DATE";
 
 	public enum fileSection {
 		INIT(), CROP_N_SOIL, GROWTH, END
@@ -38,7 +37,7 @@ public class OverviewWorker {
 		this.cropNSoilLables = new ArrayList<String>();
 		this.growthLables = new LinkedHashMap<Variable, String>();
 		this.outputValues = new LinkedHashMap<String, String>();
-		this.locations = new ArrayList<VariableLocation>();
+		this.indexFileA = new LinkedHashMap<Variable, Integer>();
 
 	}
 
@@ -137,34 +136,24 @@ public class OverviewWorker {
 			cropNSoilLables.add("Harv. Mat");
 			cropNSoilLables.add("Harvest");
 			var = new Variable("ADAP");
-			locations.add(new VariableLocation(var, 8));
 			growthLables.put(var, "Anthesis day (dap)");
 			var = new Variable("MDAP");
-			locations.add(new VariableLocation(var, 9));
 			growthLables.put(var, "Physiological maturity day (dap) ");
 			var = new Variable("HWAM");
-			locations.add(new VariableLocation(var, 1));
 			growthLables.put(var, "Yield at harvest maturity (kg [dm]/ha)");
 			var = new Variable("H#AM");
-			locations.add(new VariableLocation(var, 3));
 			growthLables.put(var, "Number at maturity (no/m2)");
 			var = new Variable("HWUM");
-			locations.add(new VariableLocation(var, 2));
 			growthLables.put(var, "Unit wt at maturity (g [dm]/unit)");
 			var = new Variable("H#UM");
-			locations.add(new VariableLocation(var, 4));
 			growthLables.put(var, "Number at maturity (no/unit)");
 			var = new Variable("CWAM");
-			locations.add(new VariableLocation(var, 6));
 			growthLables.put(var, "Tops weight at maturity (kg [dm]/ha)");
 			var = new Variable("BWAH");
-			locations.add(new VariableLocation(var, 7));
 			growthLables.put(var, "By-product produced (stalk) at maturity (kg[dm]/ha");
 			var = new Variable("LAIX");
-			locations.add(new VariableLocation(var, 5));
 			growthLables.put(var, "Leaf area index, maximum");
 			var = new Variable("HIAM");
-			locations.add(new VariableLocation(var, 10));
 			growthLables.put(var, "Harvest index at maturity");
 
 		}
@@ -178,34 +167,24 @@ public class OverviewWorker {
 			cropNSoilLables.add("Maturity");
 			cropNSoilLables.add("Harvest");
 			var = new Variable("ADAP");
-			locations.add(new VariableLocation(var, 8));
 			growthLables.put(var, "Anthesis day (dap)");
 			var = new Variable("MDAP");
-			locations.add(new VariableLocation(var, 9));
 			growthLables.put(var, "Physiological maturity day (dap) ");
 			var = new Variable("HWAM");
-			locations.add(new VariableLocation(var, 1));
 			growthLables.put(var, "Yield at harvest maturity (kg [dm]/ha)");
 			var = new Variable("H#AM");
-			locations.add(new VariableLocation(var, 3));
 			growthLables.put(var, "Number at maturity (no/m2)");
 			var = new Variable("HWUM");
-			locations.add(new VariableLocation(var, 2));
 			growthLables.put(var, "Unit wt at maturity (g [dm]/unit)");
 			var = new Variable("H#UM");
-			locations.add(new VariableLocation(var, 4));
 			growthLables.put(var, "Number at maturity (no/unit)");
 			var = new Variable("CWAM");
-			locations.add(new VariableLocation(var, 6));
 			growthLables.put(var, "Tops weight at maturity (kg [dm]/ha)");
 			var = new Variable("BWAH");
-			locations.add(new VariableLocation(var, 7));
 			growthLables.put(var, "By-product produced (stalk) at maturity (kg[dm]/ha");
 			var = new Variable("LAIX");
-			locations.add(new VariableLocation(var, 5));
 			growthLables.put(var, "Leaf area index, maximum");
 			var = new Variable("HIAM");
-			locations.add(new VariableLocation(var, 10));
 			growthLables.put(var, "Harvest index at maturity");
 
 		}
@@ -216,34 +195,24 @@ public class OverviewWorker {
 			cropNSoilLables.add("Floral I");
 			cropNSoilLables.add("Harvest");
 			var = new Variable("ADAP");
-			locations.add(new VariableLocation(var, 8));
 			growthLables.put(var, "Anthesis day (dap)");
 			var = new Variable("MDAP");
-			locations.add(new VariableLocation(var, 9));
 			growthLables.put(var, "Physiological maturity day (dap) ");
 			var = new Variable("HWAM");
-			locations.add(new VariableLocation(var, 1));
 			growthLables.put(var, "Yield at harvest maturity (kg [dm]/ha)");
 			var = new Variable("H#AM");
-			locations.add(new VariableLocation(var, 3));
 			growthLables.put(var, "Number at maturity (no/m2)");
 			var = new Variable("HWUM");
-			locations.add(new VariableLocation(var, 2));
 			growthLables.put(var, "Unit wt at maturity (g [dm]/unit)");
 			var = new Variable("H#UM");
-			locations.add(new VariableLocation(var, 4));
 			growthLables.put(var, "Number at maturity (no/unit)");
 			var = new Variable("CWAM");
-			locations.add(new VariableLocation(var, 6));
 			growthLables.put(var, "Tops weight at maturity (kg [dm]/ha)");
 			var = new Variable("BWAH");
-			locations.add(new VariableLocation(var, 7));
 			growthLables.put(var, "By-product produced (stalk) at maturity (kg[dm]/ha");
 			var = new Variable("LAIX");
-			locations.add(new VariableLocation(var, 5));
 			growthLables.put(var, "Leaf area index, maximum");
 			var = new Variable("HIAM");
-			locations.add(new VariableLocation(var, 10));
 			growthLables.put(var, "Harvest index at maturity");
 		}
 		}
@@ -261,7 +230,7 @@ public class OverviewWorker {
 		String line = "";
 		fileSection flag = fileSection.INIT;
 		int treatment = 0;
-		
+
 		try (Scanner reader = new Scanner(cultivarOutput)) {
 
 			while (reader.hasNextLine()) { // reading the whole file
@@ -299,9 +268,10 @@ public class OverviewWorker {
 					for (Variable var : growthLables.keySet()) {
 						// if contains the string that corresponds to the variable
 						if (!line.isEmpty() && line.contains(growthLables.get(var))) {
-							outputValues.put(SummaryRun.MEASURED_PREFIX + var.getName(), treatments.get(treatment).getSamplings().get(NO_DATE).getValues().get(var).doubleValue()+"");
+							outputValues.put(SummaryRun.MEASURED_PREFIX + var.getName(), treatments.get(treatment).getMeasurements().get(NO_DATE).getValues().get(var).doubleValue() + "");
 							// get simulated value
-							outputValues.put(SummaryRun.SIMULATED_PREFIX + var.getName(), line.substring(57, 64)); }
+							outputValues.put(SummaryRun.SIMULATED_PREFIX + var.getName(), line.substring(57, 64));
+						}
 
 					}
 					// to detect the end of the treatment run
@@ -334,6 +304,7 @@ public class OverviewWorker {
 	}
 
 	private Map<Integer, Treatment> readMeasurements() {
+
 		Map<Integer, Treatment> treatments = new LinkedHashMap<>();
 		File fileA = new File(App.prop.getProperty("fileA.location"));
 		Scanner reader;
@@ -341,7 +312,7 @@ public class OverviewWorker {
 		String[] numbers; // the numbers of that row of the table
 		Treatment treatment = new Treatment(-1);
 		Treatment newTreatment = new Treatment(-1);
-		Sampling meas = new Sampling();
+		Measurements meas = new Measurements();
 
 		try {
 			if (fileA.exists()) {
@@ -364,16 +335,23 @@ public class OverviewWorker {
 						} else {
 							App.log.warning("It is suppose to have only one sample per treatment " + numbers[0]);
 						}
-						
-						meas = new Sampling();
+
+						meas = new Measurements();
 						// fill the values on that row for all the variables
-						for (VariableLocation vl : locations) {
+						for (Variable var : indexFileA.keySet()) {
 							// add the measurement of each variable
-							meas.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexFileA()]));
+							meas.getValues().put(var, Double.parseDouble(numbers[indexFileA.get(var)]));
 						}
 						// add the measurement with all the values for that in the treatment
-						treatment.getSamplings().put(NO_DATE,meas);
-						treatments.put(treatment.getNumber(),treatment);
+						treatment.getMeasurements().put(NO_DATE, meas);
+						treatments.put(treatment.getNumber(), treatment);
+					} else {
+						if (numbers[0].equals("@TRNO")) {
+							for (int i = 1; i < numbers.length; i++) {
+								Variable var = new Variable(numbers[i]);
+								indexFileA.put(var, Integer.valueOf(i));
+							}
+						}
 					}
 				}
 
@@ -385,7 +363,7 @@ public class OverviewWorker {
 		} catch (FileNotFoundException e) {
 			App.log.severe("File A not found as " + fileA.getAbsolutePath());
 		}
-		
+
 		return treatments;
 	}
 

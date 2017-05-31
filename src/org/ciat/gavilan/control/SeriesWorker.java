@@ -11,25 +11,24 @@ import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
 
 import org.ciat.gavilan.model.CropCode;
 import org.ciat.gavilan.model.ProgressBar;
-import org.ciat.gavilan.model.Sampling;
+import org.ciat.gavilan.model.Measurements;
 import org.ciat.gavilan.model.SummaryRun;
 import org.ciat.gavilan.model.Treatment;
 import org.ciat.gavilan.model.Utils;
 import org.ciat.gavilan.model.Variable;
-import org.ciat.gavilan.model.VariableLocation;
 
 public class SeriesWorker {
 
-	private Set<VariableLocation> locations;
+	private Map<Variable, Integer> indexFileT;
+	private Map<Variable, Integer> indexPlantGro;
+	private Map<Integer, Treatment> samplings;
 	private String[] inputCoeficientsNames;
-	private Map<Integer, String> inputCoeficients; // pair of run a coeficients
+	private Map<Integer, String> inputCoeficients; // pair of run a coefficients
 
 	private SummaryRun run;
 
@@ -39,8 +38,9 @@ public class SeriesWorker {
 
 	public void work() {
 
-		locations = getVariables(run.getModel());
-		Map<Integer, Treatment> samplings = getSampleMeasurements();
+		indexFileT = new LinkedHashMap<>();
+		indexPlantGro = getIndexPlantGro(run.getModel());
+		samplings = getSampleMeasurements();
 		Map<Integer, Treatment> simulations = new LinkedHashMap<Integer, Treatment>();
 		inputCoeficients = new LinkedHashMap<Integer, String>();
 		ProgressBar bar = new ProgressBar();
@@ -62,9 +62,9 @@ public class SeriesWorker {
 			/* Building the header */
 			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.DATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
 
-			for (VariableLocation var : locations) {
-				head += SummaryRun.MEASURED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
-				head += SummaryRun.SIMULATED_PREFIX + var.getVariable().getName() + SummaryRun.LINE_SEPARATOR;
+			for (Variable var : indexFileT.keySet()) {
+				head += SummaryRun.MEASURED_PREFIX + var.getName() + SummaryRun.LINE_SEPARATOR;
+				head += SummaryRun.SIMULATED_PREFIX + var.getName() + SummaryRun.LINE_SEPARATOR;
 			}
 
 			if (c) {
@@ -94,14 +94,14 @@ public class SeriesWorker {
 							for (Integer tIndex : samplings.keySet()) {
 								int sampleNumber = 0;
 
-								for (String date : samplings.get(tIndex).getSamplings().keySet()) {
+								for (String date : samplings.get(tIndex).getMeasurements().keySet()) {
 									sampleNumber++;
-									
-									//check if the treatment was simulated
-									if (simulations.get(tIndex.intValue()) != null) { 
+
+									// check if the treatment was simulated
+									if (simulations.get(tIndex.intValue()) != null) {
 										// check if that date was simulated
-										if (simulations.get(tIndex.intValue()).getSamplings().get(date) != null) {
-											
+										if (simulations.get(tIndex.intValue()).getMeasurements().get(date) != null) {
+
 											if (c) {
 												CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
 												CSVWriter.write(date + SummaryRun.LINE_SEPARATOR);
@@ -118,9 +118,10 @@ public class SeriesWorker {
 												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.DATE_LABEL + "\":\"" + date + "\",");
 												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.TREATMENT_LABEL + "\":" + tIndex.intValue() + ",");
 											}
-											for (Variable var : samplings.get(tIndex).getSamplings().get(date).getValues().keySet()) {
-												measured = samplings.get(tIndex.intValue()).getSamplings().get(date).getValues().get(var).doubleValue();
-												simulated = simulations.get(tIndex.intValue()).getSamplings().get(date).getValues().get(var).doubleValue();
+											for (Variable var : samplings.get(tIndex).getMeasurements().get(date).getValues().keySet()) {
+												measured = samplings.get(tIndex.intValue()).getMeasurements().get(date).getValues().get(var).doubleValue();
+												simulated = simulations.get(tIndex.intValue()).getMeasurements().get(date).getValues().get(var).doubleValue();
+
 												/* printing in CSV */
 												if (c) {
 													CSVWriter.write(measured + SummaryRun.LINE_SEPARATOR);
@@ -226,8 +227,8 @@ public class SeriesWorker {
 
 		String line = "";
 		String[] numbers;
-		Treatment t = new Treatment(-1);
-		Sampling m = new Sampling();
+		Treatment treatment = new Treatment(-1);
+		Measurements meas = new Measurements();
 		int doy = 0;
 		int year = 0;
 		Calendar calendar = Calendar.getInstance();
@@ -246,8 +247,8 @@ public class SeriesWorker {
 					numbers = line.split(" "); // divide in spaces
 
 					if (line.contains("TREATMENT")) { // detecting the treatment
-						if (t != new Treatment(Integer.parseInt(numbers[1]))) {
-							t = new Treatment(Integer.parseInt(numbers[1]));
+						if (treatment != new Treatment(Integer.parseInt(numbers[1]))) {
+							treatment = new Treatment(Integer.parseInt(numbers[1]));
 						}
 					}
 
@@ -263,11 +264,11 @@ public class SeriesWorker {
 						calendar.set(Calendar.MINUTE, 0);
 						calendar.set(Calendar.SECOND, 0);
 
-						for (VariableLocation vl : locations) {
-							m.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexPlantGro()]));
+						for (Variable var : indexPlantGro.keySet()) {
+							meas.getValues().put(var, Double.parseDouble(numbers[indexPlantGro.get(var)]));
 						}
-						t.getSamplings().put(SummaryRun.DATE_FORMAT.format(calendar.getTime()), m);
-						treatments.put(t.getNumber(), t);
+						treatment.getMeasurements().put(SummaryRun.DATE_FORMAT.format(calendar.getTime()), meas);
+						treatments.put(treatment.getNumber(), treatment);
 					}
 
 				}
@@ -293,7 +294,7 @@ public class SeriesWorker {
 		String[] numbers;
 		Treatment treatment = new Treatment(-1);
 		Treatment newTreatment = new Treatment(-1);
-		Sampling meas = new Sampling();
+		Measurements meas = new Measurements();
 		int doy = 0;
 		int year = 0;
 		Calendar calendar = Calendar.getInstance();
@@ -333,16 +334,27 @@ public class SeriesWorker {
 						calendar.set(Calendar.MINUTE, 0);
 						calendar.set(Calendar.SECOND, 0);
 
-						meas = new Sampling();
+						meas = new Measurements();
 						// fill the values on that row for all the variables
-						for (VariableLocation vl : locations) {
+						for (Variable var : indexFileT.keySet()) {
 							// add the measurement of each variable
-							meas.getValues().put(vl.getVariable(), Double.parseDouble(numbers[vl.getIndexFileT()]));
+							meas.getValues().put(var, Double.parseDouble(numbers[indexFileT.get(var)]));
 						}
 						// add the sampling with all the values for that day in the treatment
-						treatment.getSamplings().put(SummaryRun.DATE_FORMAT.format(calendar.getTime()), meas);
+						treatment.getMeasurements().put(SummaryRun.DATE_FORMAT.format(calendar.getTime()), meas);
 						treatments.put(treatment.getNumber(), treatment);
 
+					} else {
+						if (numbers[0].equals("@TRNO")) {
+							for (int i = 2; i < numbers.length; i++) {
+								Variable var = new Variable(numbers[i]);
+								if (indexPlantGro.containsKey(var)) {
+									indexFileT.put(var, Integer.valueOf(i));
+								}else{
+									App.log.warning("The variable '"+var+"' is not an output in the PlantGro.OUT, please check this name in your file T");
+								}
+							}
+						}
 					}
 
 				}
@@ -358,22 +370,29 @@ public class SeriesWorker {
 		return treatments;
 	}
 
-	private Set<VariableLocation> getVariables(CropCode modelCode) {
-		Set<VariableLocation> vars = new LinkedHashSet<VariableLocation>();
+	private Map<Variable, Integer> getIndexPlantGro(CropCode modelCode) {
+		Map<Variable, Integer> vars = new LinkedHashMap<Variable, Integer>();
 
 		switch (run.getModel()) {
 		case BEAN: {
-			// TODO
+			// TODO check values
+			vars.put(new Variable("LAID"), 6);
+			vars.put(new Variable("CWAD"), 12);
+			vars.put(new Variable("LWAD"), 7);
+			vars.put(new Variable("GWAD"), 9);
+			vars.put(new Variable("HAID"), 15);
+			vars.put(new Variable("L#SD"), 4);
 
 		}
 
 			break;
 		case MAIZE: {
-			vars.add(new VariableLocation(new Variable("LAID"), 2, 6));
-			vars.add(new VariableLocation(new Variable("CWAD"), 3, 12));
-			vars.add(new VariableLocation(new Variable("LWAD"), 4, 7));
-			vars.add(new VariableLocation(new Variable("GWAD"), 5, 9));
-			vars.add(new VariableLocation(new Variable("HAID"), 6, 15));
+			vars.put(new Variable("LAID"), 6);
+			vars.put(new Variable("CWAD"), 12);
+			vars.put(new Variable("LWAD"), 7);
+			vars.put(new Variable("GWAD"), 9);
+			vars.put(new Variable("HAID"), 15);
+			vars.put(new Variable("L#SD"), 4);
 		}
 			break;
 		default: {
