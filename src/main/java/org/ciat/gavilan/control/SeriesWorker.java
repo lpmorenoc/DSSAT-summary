@@ -15,12 +15,12 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.ciat.gavilan.model.CropCode;
-import org.ciat.gavilan.model.ProgressBar;
 import org.ciat.gavilan.model.Measurements;
 import org.ciat.gavilan.model.SummaryRun;
 import org.ciat.gavilan.model.Treatment;
 import org.ciat.gavilan.model.Utils;
 import org.ciat.gavilan.model.Variable;
+import org.ciat.gavilan.view.ProgressBar;
 
 public class SeriesWorker {
 

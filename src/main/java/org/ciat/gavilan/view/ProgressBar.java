@@ -1,4 +1,4 @@
-package org.ciat.gavilan.model;
+package org.ciat.gavilan.view;
 
 /**@author c00kiemon5ter
  * Ascii progress meter. On completion this will reset itself,
