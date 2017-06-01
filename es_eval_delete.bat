@@ -1,2 +1,2 @@
 curl -XDELETE localhost:9200/summary*
-call status.bat
+call es_status.bat

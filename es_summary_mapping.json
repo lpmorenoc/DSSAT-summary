@@ -15,12 +15,6 @@
     "brute.out.GWAD" : { "type" : "double" },
 	"brute.meas.HAID" : { "type" : "double" },
     "brute.out.HAID" : { "type" : "double" },
-	"brute.in.P1" : { "type" : "double" },
-    "brute.in.P2" : { "type" : "double" },
-	"brute.in.P5" : { "type" : "double" },
-    "brute.in.G2" : { "type" : "double" },
-	"brute.in.G3" : { "type" : "double" },
-    "brute.in.PHINT" : { "type" : "double" },
 	"brute.id" : { "type" : "text", "index" : "true" }
    }
   }
