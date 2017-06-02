@@ -15,6 +15,10 @@ public class ErrorEvaluator {
 
 		rmse /= n; // Sum (O-P)^2 / N
 		rmse = Math.sqrt(rmse); // SQRT (Sum (O-P)^2 / N)
+		
+		if(!Utils.isNumeric(rmse+"")){
+			rmse=-1;
+		}
 
 		return rmse;
 	}
@@ -41,6 +45,9 @@ public class ErrorEvaluator {
 		}
 		nse = 1 - Math.pow((RMSE(observed, calculated) / Math.sqrt(sd)),2);
 
+		if(!Utils.isNumeric(nse+"")){
+			nse=-1;
+		}
 		return nse;
 	}
 

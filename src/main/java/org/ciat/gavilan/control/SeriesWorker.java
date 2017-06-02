@@ -63,7 +63,7 @@ public class SeriesWorker {
 		boolean isCUL = false;
 		if (App.prop.getProperty("output.eval.json").contains("Y")) {
 			if (cul.exists()) {
-				isCUL=true;
+
 				populateInputCoeficients(cul);
 			} else {
 				App.log.warning("Cultivar file not found " + cul.getAbsolutePath());
@@ -179,10 +179,10 @@ public class SeriesWorker {
 									}
 
 								}
-								
-								if (isCUL) { // if the cultivar file is present
+								// if the cultivar file is present and treatment was simulated
+								if (isCUL && (simulations.get(tIndex.intValue()) != null)) { 
 									id_= df.format(tIndex.intValue()) + subFolder.getName();
-									EvalWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"evaluation\",\"_id\":" + Long.parseLong(id_) + "}}");
+									EvalWriter.write("{\"index\":{\"_index\":\"evaluation\",\"_type\":\"evaluation\",\"_id\":" + Long.parseLong(id_) + "}}");
 									EvalWriter.newLine();
 									/* printing coefficients evaluation data */
 									EvalWriter.write("{");
@@ -454,6 +454,7 @@ public class SeriesWorker {
 			vars.put(new Variable("GWAD"), 9);
 			vars.put(new Variable("HIAD"), 15);
 			vars.put(new Variable("L#SD"), 4);
+			vars.put(new Variable("G#AD"), 13);
 		}
 			break;
 		default: {

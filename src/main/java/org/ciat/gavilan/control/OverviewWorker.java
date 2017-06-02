@@ -155,6 +155,8 @@ public class OverviewWorker {
 			growthLables.put(var, "Leaf area index, maximum");
 			var = new Variable("HIAM");
 			growthLables.put(var, "Harvest index at maturity");
+			var = new Variable("L#SM");
+			growthLables.put(var, "Leaf number per stem at maturity");
 
 		}
 
