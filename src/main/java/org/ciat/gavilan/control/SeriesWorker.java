@@ -63,7 +63,7 @@ public class SeriesWorker {
 		boolean isCUL = false;
 		if (App.prop.getProperty("output.eval.json").contains("Y")) {
 			if (cul.exists()) {
-
+				isCUL = true;
 				populateInputCoeficients(cul);
 			} else {
 				App.log.warning("Cultivar file not found " + cul.getAbsolutePath());
