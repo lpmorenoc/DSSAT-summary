@@ -112,8 +112,8 @@ public class OverviewWorker {
 				}
 			}
 
-			// pwriter.close();
-			// bwriter.close();
+			App.log.fine("overview.csv created");
+
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}

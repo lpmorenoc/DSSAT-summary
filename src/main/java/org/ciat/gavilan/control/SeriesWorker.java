@@ -136,7 +136,7 @@ public class SeriesWorker {
 											id_ = df.format(tIndex.intValue()) + df.format(sampleNumber) + subFolder.getName();
 											if (isJSON) {
 												/* printing elastic-search meta-fields */
-												JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
+												JSONWriter.write("{\"index\":{\"_index\":\"summary\",\"_type\":\"sampling-"+ run.getRunName() +"\",\"_id\":" + Long.parseLong(id_) + "}}");
 												JSONWriter.newLine();
 												/* printing run data */
 												JSONWriter.write("{");
@@ -179,10 +179,11 @@ public class SeriesWorker {
 									}
 
 								}
+								
 								// if the cultivar file is present and treatment was simulated
 								if (isCUL && (simulations.get(tIndex.intValue()) != null)) { 
 									id_= df.format(tIndex.intValue()) + subFolder.getName();
-									EvalWriter.write("{\"index\":{\"_index\":\"evaluation\",\"_type\":\"evaluation\",\"_id\":" + Long.parseLong(id_) + "}}");
+									EvalWriter.write("{\"index\":{\"_index\":\"evaluation\",\"_type\":\"evaluation-"+ run.getRunName() +"\",\"_id\":" + Long.parseLong(id_) + "}}");
 									EvalWriter.newLine();
 									/* printing coefficients evaluation data */
 									EvalWriter.write("{");
@@ -229,9 +230,17 @@ public class SeriesWorker {
 					App.log.fine("Finished gathering simulated results");
 				}
 			}
+			if(isCSV){
+				App.log.fine("summary.csv created");
+			}
+			if(isJSON){
+				App.log.fine("summary.json created");
+			}
+			if(isCUL){
+				App.log.fine("eval.json created");
+			}
 
-			// pwriter.close();
-			// bwriter.close();
+
 		} catch (FileNotFoundException e) {
 			App.log.severe("File not found " + CSV.getAbsolutePath());
 		} catch (IOException e) {

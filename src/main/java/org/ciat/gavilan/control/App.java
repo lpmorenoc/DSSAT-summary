@@ -36,12 +36,17 @@ public class App {
 
 		log.fine("work started");
 
-		owrk = rc.getOverviewWorker();
-		owrk.work();
-		log.fine("overview.csv created");
-		swrk = rc.getSeriesWorker();
-		swrk.work();
-		log.fine("summary.csv created");
+		boolean overview = App.prop.getProperty("output.overview.csv").contains("Y");
+		if (overview) {
+			owrk = rc.getOverviewWorker();
+			owrk.work();
+		}
+
+		boolean summary = App.prop.getProperty("output.summary.csv").contains("Y") || App.prop.getProperty("output.summary.json").contains("Y") || App.prop.getProperty("output.eval.json").contains("Y");
+		if (summary) {
+			swrk = rc.getSeriesWorker();
+			swrk.work();
+		}
 
 		log.fine("work finished");
 

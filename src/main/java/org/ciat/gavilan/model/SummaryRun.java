@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 
 public class SummaryRun {
 
-	private CropCode model;
 	public static final String LINE_SEPARATOR = "\t";
 	public static final String PATH_SEPARATOR = "\\";
 	public static final String CANDIDATE_LABEL = "run";
@@ -16,6 +15,8 @@ public class SummaryRun {
 	public static final String COEFFICIENT_PREFIX = "in.";
 	public static final String KIBANA_INDEX = "brute.";
 	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd"); // ISO 8601
+	private CropCode model;
+	private String runName;
 	private File overviewCSVOutput;
 	private File overviewJSONOutput;
 	private File summaryCSVOutput;
@@ -27,6 +28,7 @@ public class SummaryRun {
 	public SummaryRun(String crop, String cropCode, String runName) {
 		super();
 		this.model = CropCode.getModelCode(cropCode);
+		this.runName = runName;
 		this.overviewCSVOutput = new File(runName + "_overview.csv");
 		this.overviewJSONOutput = new File(runName + "_overview.json");
 		this.summaryCSVOutput = new File(runName + "_summary.csv");
@@ -61,6 +63,10 @@ public class SummaryRun {
 
 	public File getSummaryEvalOutput() {
 		return summaryEvalOutput;
+	}
+
+	public String getRunName() {
+		return runName;
 	}
 
 
