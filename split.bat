@@ -11,6 +11,8 @@ set uploaderFile=uploader.bat
 set quote=brute
 set name=
 set extension=
+echo curl -k -i --raw -o mapping.log -X PUT "http://localhost:9200/evaluation" -H "Content-Type: application/json" -H "User-Agent: Fiddler" -H "Host: localhost:9200" --data-binary @es_eval_mapping.json>>!uploaderFile! 
+
 for %%a in (%file%) do (
 	set "name=%%~na"
 	set "extension=%%~xa"
@@ -31,4 +33,5 @@ for /f "tokens=*" %%a in (%file%) do (
 	set /a lineCounter=!lineCounter! + 1
 
 )
+echo pause>>!uploaderFile!
 

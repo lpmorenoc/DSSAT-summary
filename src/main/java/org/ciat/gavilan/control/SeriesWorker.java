@@ -136,7 +136,7 @@ public class SeriesWorker {
 											id_ = df.format(tIndex.intValue()) + df.format(sampleNumber) + subFolder.getName();
 											if (isJSON) {
 												/* printing elastic-search meta-fields */
-												JSONWriter.write("{\"index\":{\"_index\":\"summary-"+ run.getRunName() +"\",\"_type\":\"sampling-"+ run.getRunName() +"\",\"_id\":" + Long.parseLong(id_) + "}}");
+												JSONWriter.write("{\"index\":{\"_index\":\"summary."+run.getModel()+"."+ run.getRunName() +"\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
 												JSONWriter.newLine();
 												/* printing run data */
 												JSONWriter.write("{");
@@ -183,7 +183,7 @@ public class SeriesWorker {
 								// if the cultivar file is present and treatment was simulated
 								if (isCUL && (simulations.get(tIndex.intValue()) != null)) { 
 									id_= df.format(tIndex.intValue()) + subFolder.getName();
-									EvalWriter.write("{\"index\":{\"_index\":\"evaluation-"+ run.getRunName() +"\",\"_type\":\"evaluation-"+ run.getRunName() +"\",\"_id\":" + Long.parseLong(id_) + "}}");
+									EvalWriter.write("{\"index\":{\"_index\":\"evaluation."+run.getModel()+"."+ run.getRunName() +"\",\"_type\":\"evaluation-"+ run.getRunName() +"\",\"_id\":" + Long.parseLong(id_) + "}}");
 									EvalWriter.newLine();
 									/* printing coefficients evaluation data */
 									EvalWriter.write("{");
