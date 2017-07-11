@@ -157,6 +157,18 @@ public class OverviewWorker {
 			growthLables.put(var, "Harvest index at maturity");
 			var = new Variable("L#SM");
 			growthLables.put(var, "Leaf number per stem at maturity");
+			var = new Variable("PWAM");
+			growthLables.put(var, "Pod/Ear/Panicle weight at maturity");
+			var = new Variable("PD1P");
+			growthLables.put(var, "First pod day");
+			var = new Variable("PDFP");
+			growthLables.put(var, "First seed day");
+			var = new Variable("CWAM");
+			growthLables.put(var, "Tops N at maturity");
+			var = new Variable("LAIX");
+			growthLables.put(var, "Leaf area index, maximum ");
+			
+			
 
 		}
 
