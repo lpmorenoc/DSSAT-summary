@@ -70,7 +70,7 @@ public class SeriesWorker {
 			}
 		}
 
-		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON));BufferedWriter EvalWriter = new BufferedWriter(new PrintWriter(Eval));) {
+		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON)); BufferedWriter EvalWriter = new BufferedWriter(new PrintWriter(Eval));) {
 
 			/* Building the header */
 			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.DATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
@@ -107,18 +107,18 @@ public class SeriesWorker {
 							for (Integer tIndex : samplings.keySet()) {
 								int sampleNumber = 0;
 
-								int y=samplings.get(tIndex).getMeasurements().size();
-								int x=samplings.get(tIndex).getMeasurements().get(samplings.get(tIndex).getMeasurements().keySet().iterator().next()).getValues().size();
+								int y = samplings.get(tIndex).getMeasurements().size();
+								int x = samplings.get(tIndex).getMeasurements().get(samplings.get(tIndex).getMeasurements().keySet().iterator().next()).getValues().size();
 								Double[][] matrixObservations = new Double[y][x];
 								Double[][] matrixCalculations = new Double[y][x];
-								String[] varNames = new String[y]; 
+								String[] varNames = new String[y];
 								int j = -1;
 
 								// for each sampling
 								for (String date : samplings.get(tIndex).getMeasurements().keySet()) {
 									sampleNumber++;
 									j++;
-									int k=-1;
+									int k = -1;
 
 									// check if the treatment was simulated
 									if (simulations.get(tIndex.intValue()) != null) {
@@ -136,7 +136,7 @@ public class SeriesWorker {
 											id_ = df.format(tIndex.intValue()) + df.format(sampleNumber) + subFolder.getName();
 											if (isJSON) {
 												/* printing elastic-search meta-fields */
-												JSONWriter.write("{\"index\":{\"_index\":\"summary."+run.getModel()+"."+ run.getRunName() +"\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
+												JSONWriter.write("{\"index\":{\"_index\":\"summary-" + run.getModel().toString().toLowerCase() + "-" + run.getRunName() + "\",\"_type\":\"sampling\",\"_id\":" + Long.parseLong(id_) + "}}");
 												JSONWriter.newLine();
 												/* printing run data */
 												JSONWriter.write("{");
@@ -152,7 +152,7 @@ public class SeriesWorker {
 												k++;
 												matrixObservations[j][k] = measured;
 												matrixCalculations[j][k] = simulated;
-												varNames[k]= var.getName();
+												varNames[k] = var.getName();
 
 												/* printing plantGro and file T values in CSV */
 												if (isCSV) {
@@ -179,11 +179,12 @@ public class SeriesWorker {
 									}
 
 								}
-								
+
 								// if the cultivar file is present and treatment was simulated
-								if (isCUL && (simulations.get(tIndex.intValue()) != null)) { 
-									id_= df.format(tIndex.intValue()) + subFolder.getName();
-									EvalWriter.write("{\"index\":{\"_index\":\"evaluation."+run.getModel()+"."+ run.getRunName() +"\",\"_type\":\"evaluation-"+ run.getRunName() +"\",\"_id\":" + Long.parseLong(id_) + "}}");
+								if (isCUL && (simulations.get(tIndex.intValue()) != null)) {
+									id_ = df.format(tIndex.intValue()) + subFolder.getName();
+
+									EvalWriter.write("{\"index\":{\"_index\":\"evaluation-" + run.getModel().toString().toLowerCase() + "-" + run.getRunName() + "\",\"_type\":\"evaluation-" + run.getRunName() + "\",\"_id\":" + Long.parseLong(id_) + "}}");
 									EvalWriter.newLine();
 									/* printing coefficients evaluation data */
 									EvalWriter.write("{");
@@ -194,17 +195,21 @@ public class SeriesWorker {
 										/* printing coefficients values in JSON */
 										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + values[i] + ",");
 									}
-									for(int m=0;m<x;m++){
-										Double[] observed=new Double[y];
-										Double[] calculated=new Double[y];
-										for(int n=0;n<y;n++){
-											observed[n]=matrixObservations[n][m];
-											calculated[n]=matrixCalculations[n][m];
+									for (int m = 0; m < x; m++) {
+										Map<Integer,Double> observed = new LinkedHashMap<>();
+										Map<Integer,Double> calculated = new LinkedHashMap<>();
+										for (int n = 0; n < y; n++) {
+											// avoid where there is no data
+											if (matrixObservations[n][m] != null && matrixObservations[n][m] != -99 && matrixObservations[n][m]!= 0 
+													&& matrixCalculations[n][m] != null && matrixCalculations[n][m] != -99 && matrixCalculations[n][m] != 0) {  
+												observed.put(n,matrixObservations[n][m]);
+												calculated.put(n,matrixCalculations[n][m]);
+											}
 										}
-										
-										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[m] + ".rmse\":" + ErrorEvaluator.RMSE(observed, calculated)+ ",");
-										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[m] + ".nse\":" + ErrorEvaluator.NSE(observed, calculated)+ ",");
-										
+
+										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[m] + ".rmse\":" + ErrorEvaluator.RMSE(observed, calculated) + ",");
+										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[m] + ".nse\":" + ErrorEvaluator.NSE(observed, calculated) + ",");
+
 									}
 									/* closing JSON line */
 									EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
@@ -230,16 +235,15 @@ public class SeriesWorker {
 					App.log.fine("Finished gathering simulated results");
 				}
 			}
-			if(isCSV){
+			if (isCSV) {
 				App.log.fine("summary.csv created");
 			}
-			if(isJSON){
+			if (isJSON) {
 				App.log.fine("summary.json created");
 			}
-			if(isCUL){
+			if (isCUL) {
 				App.log.fine("eval.json created");
 			}
-
 
 		} catch (FileNotFoundException e) {
 			App.log.severe("File not found " + CSV.getAbsolutePath());

@@ -1,14 +1,16 @@
 package org.ciat.gavilan.model;
 
+import java.util.Map;
+
 public class ErrorEvaluator {
 
-	public static double RMSE(Double[] observed, Double[] calculated) {
+	public static double RMSE(Map<Integer,Double> observed, Map<Integer,Double> calculated) {
 		double rmse = 0.0;
 		double n = 0;
 
-		for (int i = 0; i < observed.length; i++) {
-			if (isOK(observed[i]) && isOK(calculated[i])) {
-				rmse += Math.pow((observed[i] - calculated[i]), 2); // Sum (O-P)^2
+		for (Integer i:observed.keySet()) {
+			if (isOK(observed.get(i)) && isOK(calculated.get(i))) {
+				rmse += Math.pow((observed.get(i) - calculated.get(i)), 2); // Sum (O-P)^2
 				n++;
 			}
 		}
@@ -23,24 +25,24 @@ public class ErrorEvaluator {
 		return rmse;
 	}
 
-	public static double NSE(Double[] observed, Double[] calculated) {
+	public static double NSE(Map<Integer,Double> observed, Map<Integer,Double> calculated) {
 		double nse = 0.0; // NSE
 		double sd = 0.0; // standard deviations
 		double o_avg = 0.0; // average of observed
 		double n = 0;
 
-		for (int i = 0; i < observed.length; i++) {
-			if (isOK(observed[i])) {
-				o_avg += observed[i];
+		for (Integer i:observed.keySet()) {
+			if (isOK(observed.get(i))) {
+				o_avg += observed.get(i);
 				n++;
 			}
 		}
 		
 		o_avg /= n; // (Sum O)/N
 
-		for (int i = 0; i < observed.length; i++) {
-			if (isOK(observed[i])) {
-				sd += Math.pow((observed[i] - o_avg), 2); // Sum (O-O_avg)^2
+		for (Integer i:observed.keySet()) {
+			if (isOK(observed.get(i))) {
+				sd += Math.pow((observed.get(i) - o_avg), 2); // Sum (O-O_avg)^2
 			}
 		}
 		nse = 1 - Math.pow((RMSE(observed, calculated) / Math.sqrt(sd)),2);
