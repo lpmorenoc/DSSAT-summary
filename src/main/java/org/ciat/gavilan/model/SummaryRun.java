@@ -27,13 +27,14 @@ public class SummaryRun {
 
 	public SummaryRun(String crop, String cropCode, String runName) {
 		super();
+		String outputsFolder="out/runName/";
 		this.model = CropCode.getModelCode(cropCode);
 		this.runName = runName;
-		this.overviewCSVOutput = new File(runName + "_overview.csv");
-		this.overviewJSONOutput = new File(runName + "_overview.json");
-		this.summaryCSVOutput = new File(runName + "_summary.csv");
-		this.summaryJSONOutput = new File(runName + "_summary.json");
-		this.summaryEvalOutput = new File(runName + "_eval.json");
+		this.overviewCSVOutput = new File(outputsFolder + "overview.csv");
+		this.overviewJSONOutput = new File(outputsFolder + "overview.json");
+		this.summaryCSVOutput = new File(outputsFolder + "summary.csv");
+		this.summaryJSONOutput = new File(outputsFolder + "summary.json");
+		this.summaryEvalOutput = new File(outputsFolder + "eval.json");
 	}
 	
 

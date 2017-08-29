@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.ciat.gavilan.model.CropCode;
-import org.ciat.gavilan.model.ErrorEvaluator;
+import org.ciat.gavilan.model.GoodnessEvaluator;
 import org.ciat.gavilan.model.Measurements;
 import org.ciat.gavilan.model.SummaryRun;
 import org.ciat.gavilan.model.Treatment;
@@ -29,7 +29,7 @@ public class SeriesWorker {
 	private Map<Variable, Integer> indexPlantGro;
 	private Map<Integer, Treatment> samplings;
 	private String[] inputCoeficientsNames;
-	private Map<Integer, String> inputCoeficients; // pair of run a coefficients
+	private Map<Integer, String> inputCoefficients; // pair of run a coefficients
 
 	private SummaryRun run;
 
@@ -43,7 +43,7 @@ public class SeriesWorker {
 		indexPlantGro = getIndexPlantGro(run.getModel());
 		samplings = getSampleMeasurements();
 		Map<Integer, Treatment> simulations = new LinkedHashMap<Integer, Treatment>();
-		inputCoeficients = new LinkedHashMap<Integer, String>();
+		inputCoefficients = new LinkedHashMap<Integer, String>();
 		ProgressBar bar = new ProgressBar();
 		int subFolderIndex = 0;
 		DecimalFormat df = new DecimalFormat("00");
@@ -56,19 +56,41 @@ public class SeriesWorker {
 
 		// check if user wants output in CSV
 		boolean isCSV = App.prop.getProperty("output.summary.csv").contains("Y");
-		// check if user wants output in JSON
-		boolean isJSON = App.prop.getProperty("output.summary.json").contains("Y");
-		// check if user wants evaluation
-		File cul = new File(App.prop.getProperty("crop.name") + ".CUL");
-		boolean isCUL = false;
-		if (App.prop.getProperty("output.eval.json").contains("Y")) {
-			if (cul.exists()) {
-				isCUL = true;
-				populateInputCoeficients(cul);
-			} else {
-				App.log.warning("Cultivar file not found " + cul.getAbsolutePath());
+		if (isCSV) {
+			try {
+				CSV.createNewFile();
+			} catch (IOException e) {
+				App.log.severe("File can't be created: "+ CSV.getAbsolutePath());
 			}
 		}
+		// check if user wants output in JSON
+		boolean isJSON = App.prop.getProperty("output.summary.json").contains("Y");
+		if (isJSON) {
+			try {
+				JSON.createNewFile();
+			} catch (IOException e) {
+				App.log.severe("File can't be created: "+ JSON.getAbsolutePath());
+			}
+		}
+		
+		// check if user wants evaluation
+		boolean isEval = App.prop.getProperty("output.eval.json").contains("Y");
+		if (isEval) {
+			File cul = new File(App.prop.getProperty("crop.name") + ".CUL");
+			try {
+				Eval.createNewFile();
+			} catch (IOException e) {
+				App.log.severe("File can't be created: "+ Eval.getAbsolutePath());
+			}
+			if (App.prop.getProperty("output.eval.json").contains("Y")) {
+				if (cul.exists()) {
+					populateInputCoeficients(cul);
+				} else {
+					App.log.warning("Cultivar file not found " + cul.getAbsolutePath());
+				}
+			}
+		}
+		
 
 		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON)); BufferedWriter EvalWriter = new BufferedWriter(new PrintWriter(Eval));) {
 
@@ -97,28 +119,31 @@ public class SeriesWorker {
 
 					int subFoderTotal = bigFolder.listFiles().length;
 
-					for (File subFolder : bigFolder.listFiles()) { // for each subfolder
+					// for each subfolder
+					for (File subFolder : bigFolder.listFiles()) {
 						// look at the overview.out file
 						File output = new File(subFolder.getAbsolutePath() + SummaryRun.PATH_SEPARATOR + "PlantGro.OUT");
 						if (output.exists()) {
 							simulations = getSimulatedMeasurements(output); // get simulated values for that run
 
-							// print full file
+							// for each treatment
 							for (Integer tIndex : samplings.keySet()) {
 								int sampleNumber = 0;
 
-								int y = samplings.get(tIndex).getMeasurements().size();
-								int x = samplings.get(tIndex).getMeasurements().get(samplings.get(tIndex).getMeasurements().keySet().iterator().next()).getValues().size();
-								Double[][] matrixObservations = new Double[y][x];
-								Double[][] matrixCalculations = new Double[y][x];
-								String[] varNames = new String[y];
-								int j = -1;
+								/** Declaring matrix of values according to the number of the sample and the variable */
+								// number of samplings measured
+								int samplingNumber = samplings.get(tIndex).getMeasurements().size();
+								// number of variables
+								int variableNumber = samplings.get(tIndex).getMeasurements().get(samplings.get(tIndex).getMeasurements().keySet().iterator().next()).getValues().size();
+								Double[][] matrixObservations = new Double[samplingNumber][variableNumber];
+								Double[][] matrixSimulations = new Double[samplingNumber][variableNumber];
+								String[] varNames = new String[samplingNumber];
+								/** end of declaration */
 
 								// for each sampling
 								for (String date : samplings.get(tIndex).getMeasurements().keySet()) {
 									sampleNumber++;
-									j++;
-									int k = -1;
+									int variableIndex = -1;
 
 									// check if the treatment was simulated
 									if (simulations.get(tIndex.intValue()) != null) {
@@ -145,14 +170,21 @@ public class SeriesWorker {
 												JSONWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.TREATMENT_LABEL + "\":" + tIndex.intValue() + ",");
 											}
 
+											// for each variable sampled on the specific date
 											for (Variable var : samplings.get(tIndex).getMeasurements().get(date).getValues().keySet()) {
+												// get the measured value and the simulated value
 												measured = samplings.get(tIndex.intValue()).getMeasurements().get(date).getValues().get(var).doubleValue();
 												simulated = simulations.get(tIndex.intValue()).getMeasurements().get(date).getValues().get(var).doubleValue();
 
-												k++;
-												matrixObservations[j][k] = measured;
-												matrixCalculations[j][k] = simulated;
-												varNames[k] = var.getName();
+												/**
+												 * populating the values according to the number of the sample and the
+												 * variable
+												 */
+												variableIndex++;
+												matrixObservations[sampleNumber - 1][variableIndex] = measured;
+												matrixSimulations[sampleNumber - 1][variableIndex] = simulated;
+												varNames[variableIndex] = var.getName();
+												/** end of population */
 
 												/* printing plantGro and file T values in CSV */
 												if (isCSV) {
@@ -181,34 +213,58 @@ public class SeriesWorker {
 								}
 
 								// if the cultivar file is present and treatment was simulated
-								if (isCUL && (simulations.get(tIndex.intValue()) != null)) {
+								if (isEval && (simulations.get(tIndex.intValue()) != null)) {
 									id_ = df.format(tIndex.intValue()) + subFolder.getName();
 
-									EvalWriter.write("{\"index\":{\"_index\":\"evaluation-" + run.getModel().toString().toLowerCase() + "-" + run.getRunName() + "\",\"_type\":\"evaluation-" + run.getRunName() + "\",\"_id\":" + Long.parseLong(id_) + "}}");
+									EvalWriter.write("{\"index\":{\"_index\":\"evaluation-" + run.getModel().toString().toLowerCase() + "-" + run.getRunName() + "\",\"_type\":\"evaluation" + "\",\"_id\":" + Long.parseLong(id_) + "}}");
 									EvalWriter.newLine();
 									/* printing coefficients evaluation data */
 									EvalWriter.write("{");
 									EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.CANDIDATE_LABEL + "\":" + Integer.parseInt(subFolder.getName()) + ",");
 									EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.TREATMENT_LABEL + "\":" + tIndex.intValue() + ",");
-									String[] values = inputCoeficients.get(Integer.parseInt(subFolder.getName())).split(" ");
-									for (int i = 0; i < values.length; i++) {
-										/* printing coefficients values in JSON */
-										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + values[i] + ",");
+
+									String coefficientsLine = inputCoefficients.get(Integer.parseInt(subFolder.getName()));
+									if (coefficientsLine != null) {
+										String[] coefficientsValues = coefficientsLine.split(" ");
+										for (int i = 0; i < coefficientsValues.length; i++) {
+											/* printing coefficients values in JSON */
+											EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + SummaryRun.COEFFICIENT_PREFIX + inputCoeficientsNames[i] + "\":" + coefficientsValues[i] + ",");
+										}
+									} else {
+										App.log.warning("Coeffiencients not found for run: " + subFolder.getName());
 									}
-									for (int m = 0; m < x; m++) {
-										Map<Integer,Double> observed = new LinkedHashMap<>();
-										Map<Integer,Double> calculated = new LinkedHashMap<>();
-										for (int n = 0; n < y; n++) {
-											// avoid where there is no data
-											if (matrixObservations[n][m] != null && matrixObservations[n][m] != -99 && matrixObservations[n][m]!= 0 
-													&& matrixCalculations[n][m] != null && matrixCalculations[n][m] != -99 && matrixCalculations[n][m] != 0) {  
-												observed.put(n,matrixObservations[n][m]);
-												calculated.put(n,matrixCalculations[n][m]);
+
+									// for each variable
+									for (int variableIndex = 0; variableIndex < variableNumber; variableIndex++) {
+										// observed values from file T
+										Map<Integer, Double> observed = new LinkedHashMap<>();
+										// calculated values from PlantGro
+										Map<Integer, Double> calculated = new LinkedHashMap<>();
+
+										for (int samplingIndex = 0; samplingIndex < samplingNumber; samplingIndex++) {
+											// check if data is comparable
+											if (matrixObservations[samplingIndex][variableIndex] != null && matrixObservations[samplingIndex][variableIndex] != -99 && matrixObservations[samplingIndex][variableIndex] != 0 && matrixSimulations[samplingIndex][variableIndex] != null && matrixSimulations[samplingIndex][variableIndex] != -99 && matrixSimulations[samplingIndex][variableIndex] != 0) {
+												// populate observed and calculated
+												observed.put(samplingIndex, matrixObservations[samplingIndex][variableIndex]);
+												calculated.put(samplingIndex, matrixSimulations[samplingIndex][variableIndex]);
 											}
 										}
+										// calculate RMSE and NSE
+										double rmse = GoodnessEvaluator.RMSE(id_, observed, calculated);
+										double nse = GoodnessEvaluator.NSE(id_, observed, calculated);
+										// write RMSE and NSE on JSON output
+										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[variableIndex] + ".rmse\":" + rmse + ",");
+										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[variableIndex] + ".nse\":" + nse + ",");
 
-										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[m] + ".rmse\":" + ErrorEvaluator.RMSE(observed, calculated) + ",");
-										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[m] + ".nse\":" + ErrorEvaluator.NSE(observed, calculated) + ",");
+										// TODO DELETE THIS
+										if (nse < 0 && nse != GoodnessEvaluator.NO_VALUE) {
+											System.out.println(varNames[variableIndex] + " tr " + df.format(tIndex.intValue()) + " run " + subFolder.getName());
+											System.out.println(observed);
+											System.out.println(calculated);
+											System.out.println(variableIndex);
+											System.exit(0);
+										}
+										// ----
 
 									}
 									/* closing JSON line */
@@ -241,7 +297,7 @@ public class SeriesWorker {
 			if (isJSON) {
 				App.log.fine("summary.json created");
 			}
-			if (isCUL) {
+			if (isEval) {
 				App.log.fine("eval.json created");
 			}
 
@@ -284,7 +340,7 @@ public class SeriesWorker {
 								line = line.replaceAll("  ", " ");
 							}
 							line = line.trim();
-							inputCoeficients.put(Integer.parseInt(first), line);
+							inputCoefficients.put(Integer.parseInt(first), line);
 
 						}
 					}
@@ -302,6 +358,7 @@ public class SeriesWorker {
 		String line = "";
 		String[] numbers;
 		Treatment treatment = new Treatment(-1);
+		// simulations in this case
 		Measurements meas = new Measurements();
 		int doy = 0;
 		int year = 0;
@@ -338,6 +395,7 @@ public class SeriesWorker {
 						calendar.set(Calendar.MINUTE, 0);
 						calendar.set(Calendar.SECOND, 0);
 
+						meas = new Measurements();
 						for (Variable var : indexPlantGro.keySet()) {
 							meas.getValues().put(var, Double.parseDouble(numbers[indexPlantGro.get(var)]));
 						}
@@ -449,7 +507,7 @@ public class SeriesWorker {
 
 		switch (run.getModel()) {
 		case BEAN: {
-			// TODO check values
+			// TODO check index
 			vars.put(new Variable("LAID"), 6);
 			vars.put(new Variable("CWAD"), 12);
 			vars.put(new Variable("LWAD"), 7);
