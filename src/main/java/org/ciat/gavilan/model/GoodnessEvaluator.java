@@ -30,7 +30,7 @@ public class GoodnessEvaluator {
 
 		// if it's not numeric return NO_VALUE
 		if (!Utils.isNumeric(rmse + "")) {
-			App.log.warning("id:" + id+", RMSE can't be calculated: " + rmse + "; observed:" + observed + "; calculated:" + calculated);
+			App.log.warning("id:" + id + ", RMSE can't be calculated: " + rmse + "; observed:" + observed + "; calculated:" + calculated);
 			return NO_VALUE;
 		}
 
@@ -38,17 +38,13 @@ public class GoodnessEvaluator {
 	}
 
 	public static double NSE(String id, Map<Integer, Double> observed, Map<Integer, Double> calculated) {
-		double nse = 0.0; // NSE
+		double nse = 1; // NSE
+		double rmse = 0.0;
 		double sd = 0.0; // standard deviations
 		double o_avg = 0.0; // average of observed
 		double n = 0;
-		double rmse = RMSE(id, observed, calculated);
 
-		if (rmse == NO_VALUE) {
-			return NO_VALUE;
-		}
-
-		// calculate the average of observed
+		/* calculate the average of observed */
 		for (Integer i : observed.keySet()) {
 			if (isComparable(observed.get(i))) {
 				o_avg += observed.get(i);
@@ -56,24 +52,27 @@ public class GoodnessEvaluator {
 			}
 		}
 		o_avg /= n; // (Sum O)/N
+		/* end calculate the average of observed */
 
-		// calculate standard deviation
+		// RMSE and SD
 		for (Integer i : observed.keySet()) {
 			if (isComparable(observed.get(i))) {
+				rmse += Math.pow((observed.get(i) - calculated.get(i)), 2); // Sum (O-P)^2
 				sd += Math.pow((observed.get(i) - o_avg), 2); // Sum (O-O_avg)^2
 			}
 		}
 
 		// calculate NSE
-		nse = 1 - Math.pow((rmse / Math.sqrt(sd)), 2);
-
-		if (!Utils.isNumeric(nse + "")) {
-			nse = NO_VALUE;
+		if (sd != 0) {
+			nse = 1 - (rmse / sd);
 		}
+
 		// log calculation error
 		if (nse < 0 && nse != NO_VALUE) {
 			App.log.warning("id: " + id+", NSE value is under 0, RMSE: "+rmse+" NSE: " + nse + "; observed:" + observed + "; calculated:" + calculated);
 		}
+
+
 		return nse;
 	}
 
