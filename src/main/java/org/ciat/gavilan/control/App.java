@@ -20,6 +20,7 @@ public class App {
 
 	public static Logger log;
 	public static Properties prop;
+	public static final String outputsFolder = "outputs//";
 
 	public static void main(String[] args) {
 		App app = new App();
@@ -29,6 +30,9 @@ public class App {
 	}
 
 	private void run() {
+		
+		File outputs=new File(App.outputsFolder);
+		outputs.mkdir();
 
 		OverviewWorker owrk;
 		SeriesWorker swrk;
@@ -68,7 +72,7 @@ public class App {
 			logger.removeHandler(handler);
 		}
 		try {
-			fileHandler = new FileHandler(runName + "_summary.log");
+			fileHandler = new FileHandler(App.outputsFolder +runName + "_summary.log");
 			consoleHandler = new ConsoleHandler();
 			fileHandler.setLevel(Level.FINE);
 			consoleHandler.setLevel(Level.FINE);

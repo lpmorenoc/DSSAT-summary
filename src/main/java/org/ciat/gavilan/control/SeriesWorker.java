@@ -250,8 +250,9 @@ public class SeriesWorker {
 											}
 										}
 										// calculate RMSE and NSE
-										double rmse = GoodnessEvaluator.RMSE(id_, observed, calculated);
-										double nse = GoodnessEvaluator.NSE(id_, observed, calculated);
+										String tracklabel="run:"+subFolder.getName()+" treatment:"+tIndex+" variable:"+varNames[variableIndex];
+										double rmse = GoodnessEvaluator.RMSE(tracklabel, observed, calculated);
+										double nse = GoodnessEvaluator.NSE(tracklabel, observed, calculated);
 										// write RMSE and NSE on JSON output
 										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[variableIndex] + ".rmse\":" + rmse + ",");
 										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[variableIndex] + ".nse\":" + nse + ",");

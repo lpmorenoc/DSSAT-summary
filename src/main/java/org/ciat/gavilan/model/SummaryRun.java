@@ -3,6 +3,8 @@ package org.ciat.gavilan.model;
 import java.io.File;
 import java.text.SimpleDateFormat;
 
+import org.ciat.gavilan.control.App;
+
 public class SummaryRun {
 
 	public static final String LINE_SEPARATOR = "\t";
@@ -23,20 +25,16 @@ public class SummaryRun {
 	private File summaryJSONOutput;
 	private File summaryEvalOutput;
 
-
-
 	public SummaryRun(String crop, String cropCode, String runName) {
 		super();
-		String outputsFolder="out/runName/";
 		this.model = CropCode.getModelCode(cropCode);
 		this.runName = runName;
-		this.overviewCSVOutput = new File(outputsFolder + "overview.csv");
-		this.overviewJSONOutput = new File(outputsFolder + "overview.json");
-		this.summaryCSVOutput = new File(outputsFolder + "summary.csv");
-		this.summaryJSONOutput = new File(outputsFolder + "summary.json");
-		this.summaryEvalOutput = new File(outputsFolder + "eval.json");
+		this.overviewCSVOutput = new File(App.outputsFolder + runName + "_overview.csv");
+		this.overviewJSONOutput = new File(App.outputsFolder + runName + "_overview.json");
+		this.summaryCSVOutput = new File(App.outputsFolder + runName + "_summary.csv");
+		this.summaryJSONOutput = new File(App.outputsFolder + runName + "_summary.json");
+		this.summaryEvalOutput = new File(App.outputsFolder + runName + "_eval.json");
 	}
-	
 
 	public CropCode getModel() {
 		return model;
@@ -69,6 +67,5 @@ public class SummaryRun {
 	public String getRunName() {
 		return runName;
 	}
-
 
 }
