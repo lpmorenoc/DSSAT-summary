@@ -257,16 +257,6 @@ public class SeriesWorker {
 										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[variableIndex] + ".rmse\":" + rmse + ",");
 										EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + varNames[variableIndex] + ".nse\":" + nse + ",");
 
-										// TODO DELETE THIS
-										if (nse < 0 && nse != GoodnessEvaluator.NO_VALUE) {
-											System.out.println(varNames[variableIndex] + " tr " + df.format(tIndex.intValue()) + " run " + subFolder.getName());
-											System.out.println(observed);
-											System.out.println(calculated);
-											System.out.println(variableIndex);
-											System.exit(0);
-										}
-										// ----
-
 									}
 									/* closing JSON line */
 									EvalWriter.write("\"" + SummaryRun.KIBANA_INDEX + "id" + "\":\"" + id_ + "\"");
