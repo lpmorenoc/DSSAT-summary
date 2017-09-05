@@ -21,6 +21,7 @@ public class App {
 	public static Logger log;
 	public static Properties prop;
 	public static final String outputsFolder = "outputs//";
+	public static File config = new File("config.properties");
 
 	public static void main(String[] args) {
 		App app = new App();
@@ -30,8 +31,8 @@ public class App {
 	}
 
 	private void run() {
-		
-		File outputs=new File(App.outputsFolder);
+
+		File outputs = new File(App.outputsFolder);
 		outputs.mkdir();
 
 		OverviewWorker owrk;
@@ -40,13 +41,23 @@ public class App {
 
 		log.fine("work started");
 
-		boolean overview = App.prop.getProperty("output.overview.csv").contains("Y");
+		boolean overview = true;
+		try {
+			overview = App.prop.getProperty("output.overview.csv").contains("Y");
+		} catch (Exception e) {
+			App.log.warning("A problem occurred in outputs configuration in " + config.getName());
+		}
 		if (overview) {
 			owrk = rc.getOverviewWorker();
 			owrk.work();
 		}
 
-		boolean summary = App.prop.getProperty("output.summary.csv").contains("Y") || App.prop.getProperty("output.summary.json").contains("Y") || App.prop.getProperty("output.eval.json").contains("Y");
+		boolean summary = true;
+		try {
+			summary = App.prop.getProperty("output.summary.csv").contains("Y") || App.prop.getProperty("output.summary.json").contains("Y") || App.prop.getProperty("output.eval.json").contains("Y");
+		} catch (Exception e) {
+			App.log.warning("A problem occurred in outputs configuration in " + config.getName());
+		}
 		if (summary) {
 			swrk = rc.getSeriesWorker();
 			swrk.work();
@@ -72,7 +83,7 @@ public class App {
 			logger.removeHandler(handler);
 		}
 		try {
-			fileHandler = new FileHandler(App.outputsFolder +runName + "_summary.log");
+			fileHandler = new FileHandler(App.outputsFolder + runName + "_summary.log");
 			consoleHandler = new ConsoleHandler();
 			fileHandler.setLevel(Level.FINE);
 			consoleHandler.setLevel(Level.FINE);
@@ -95,7 +106,6 @@ public class App {
 
 	private Properties obtainProperties() {
 		Properties prop = new Properties();
-		File config = new File("config.properties");
 		if (config.exists()) {
 			try (FileInputStream in = new FileInputStream(config.getName())) {
 				prop.load(in);

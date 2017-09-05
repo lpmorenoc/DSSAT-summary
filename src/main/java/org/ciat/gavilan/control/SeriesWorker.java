@@ -54,33 +54,54 @@ public class SeriesWorker {
 		File JSON = run.getSummaryJSONOutput();
 		File Eval = run.getSummaryEvalOutput();
 
+		String option = "";
+		
 		// check if user wants output in CSV
-		boolean isCSV = App.prop.getProperty("output.summary.csv").contains("Y");
+		boolean isCSV = true;
+		try {
+			option = "output.summary.csv";
+			isCSV = App.prop.getProperty(option).contains("Y");
+		} catch (Exception e1) {
+			App.log.warning("A problem occurred reading option" + option + " configuration in " + App.config.getName() + ", taking default value: " + isCSV);
+		}
 		if (isCSV) {
 			try {
 				CSV.createNewFile();
 			} catch (IOException e) {
-				App.log.severe("File can't be created: "+ CSV.getAbsolutePath());
+				App.log.severe("File can't be created: " + CSV.getAbsolutePath());
 			}
 		}
+		
 		// check if user wants output in JSON
-		boolean isJSON = App.prop.getProperty("output.summary.json").contains("Y");
+		boolean isJSON = true;
+		try {
+			option = "output.summary.json";
+			isJSON = App.prop.getProperty(option).contains("Y");
+		} catch (Exception e1) {
+			App.log.warning("A problem occurred reading option" + option + " configuration in " + App.config.getName() + ", taking default value: " + isJSON);
+		}
 		if (isJSON) {
 			try {
 				JSON.createNewFile();
 			} catch (IOException e) {
-				App.log.severe("File can't be created: "+ JSON.getAbsolutePath());
+				App.log.severe("File can't be created: " + JSON.getAbsolutePath());
 			}
 		}
-		
+
 		// check if user wants evaluation
-		boolean isEval = App.prop.getProperty("output.eval.json").contains("Y");
+		boolean isEval = true;
+		try {
+			option = "output.eval.json";
+			isEval = App.prop.getProperty(option).contains("Y");
+		} catch (Exception e1) {
+			App.log.warning("A problem occurred reading option" + option + " configuration in " + App.config.getName() + ", taking default value: " + isEval);
+		}
 		if (isEval) {
 			File cul = new File(App.prop.getProperty("crop.name") + ".CUL");
 			try {
 				Eval.createNewFile();
 			} catch (IOException e) {
-				App.log.severe("File can't be created: "+ Eval.getAbsolutePath());
+				App.log.severe("File can't be created: " + Eval.getAbsolutePath());
 			}
 			if (App.prop.getProperty("output.eval.json").contains("Y")) {
 				if (cul.exists()) {
@@ -90,7 +111,6 @@ public class SeriesWorker {
 				}
 			}
 		}
-		
 
 		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON)); BufferedWriter EvalWriter = new BufferedWriter(new PrintWriter(Eval));) {
 
@@ -250,7 +270,7 @@ public class SeriesWorker {
 											}
 										}
 										// calculate RMSE and NSE
-										String tracklabel="run:"+subFolder.getName()+" treatment:"+tIndex+" variable:"+varNames[variableIndex];
+										String tracklabel = "run:" + subFolder.getName() + " treatment:" + tIndex + " variable:" + varNames[variableIndex];
 										double rmse = GoodnessEvaluator.RMSE(tracklabel, observed, calculated);
 										double nse = GoodnessEvaluator.NSE(tracklabel, observed, calculated);
 										// write RMSE and NSE on JSON output
