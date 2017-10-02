@@ -253,7 +253,7 @@ public class OverviewWorker {
 				switch (flag) {
 				case INIT: {
 					if (line.contains("*RUN")) { // to detect each single run of a treatment
-						treatment = Integer.parseInt(line.substring(7, 10).replaceAll(" ", ""));
+						treatment = Integer.parseInt(line.substring(6, 10).replaceAll(" ", ""));
 						// to print experiment run ID and the treatment
 						for (String key : outputValues.keySet()) {
 							cadena = (new File(cultivarOutput.getParent())).getName() + SummaryRun.LINE_SEPARATOR + treatment + SummaryRun.LINE_SEPARATOR;
