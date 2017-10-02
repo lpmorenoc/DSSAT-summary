@@ -115,11 +115,11 @@ public class SeriesWorker {
 		try (BufferedWriter CSVWriter = new BufferedWriter(new PrintWriter(CSV)); BufferedWriter JSONWriter = new BufferedWriter(new PrintWriter(JSON)); BufferedWriter EvalWriter = new BufferedWriter(new PrintWriter(Eval));) {
 
 			/* Building the header */
-			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.DATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
+			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.COLUMN_SEPARATOR + SummaryRun.DATE_LABEL + SummaryRun.COLUMN_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.COLUMN_SEPARATOR;
 
 			for (Variable var : indexFileT.keySet()) {
-				head += SummaryRun.MEASURED_PREFIX + var.getName() + SummaryRun.LINE_SEPARATOR;
-				head += SummaryRun.SIMULATED_PREFIX + var.getName() + SummaryRun.LINE_SEPARATOR;
+				head += SummaryRun.MEASURED_PREFIX + var.getName() + SummaryRun.COLUMN_SEPARATOR;
+				head += SummaryRun.SIMULATED_PREFIX + var.getName() + SummaryRun.COLUMN_SEPARATOR;
 			}
 
 			if (isCSV) {
@@ -172,9 +172,9 @@ public class SeriesWorker {
 
 											/* printing base data in CSV */
 											if (isCSV) {
-												CSVWriter.write(subFolder.getName() + SummaryRun.LINE_SEPARATOR);
-												CSVWriter.write(date + SummaryRun.LINE_SEPARATOR);
-												CSVWriter.write(tIndex.intValue() + SummaryRun.LINE_SEPARATOR);
+												CSVWriter.write(subFolder.getName() + SummaryRun.COLUMN_SEPARATOR);
+												CSVWriter.write(date + SummaryRun.COLUMN_SEPARATOR);
+												CSVWriter.write(tIndex.intValue() + SummaryRun.COLUMN_SEPARATOR);
 											}
 
 											/* printing base data in JSON */
@@ -208,8 +208,8 @@ public class SeriesWorker {
 
 												/* printing plantGro and file T values in CSV */
 												if (isCSV) {
-													CSVWriter.write(measured + SummaryRun.LINE_SEPARATOR);
-													CSVWriter.write(simulated + SummaryRun.LINE_SEPARATOR);
+													CSVWriter.write(measured + SummaryRun.COLUMN_SEPARATOR);
+													CSVWriter.write(simulated + SummaryRun.COLUMN_SEPARATOR);
 												}
 
 												/* printing plantGro and file T values in JSON */

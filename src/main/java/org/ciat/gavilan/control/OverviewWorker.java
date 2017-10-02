@@ -56,20 +56,20 @@ public class OverviewWorker {
 				new PrintWriter(CSV)); /* BufferedWriter JSONwriter = new BufferedWriter(new PrintWriter(JSON)) */) {
 
 			/* Building the header */
-			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.LINE_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.LINE_SEPARATOR;
+			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.COLUMN_SEPARATOR + "RUN" + SummaryRun.COLUMN_SEPARATOR+ SummaryRun.TREATMENT_LABEL + SummaryRun.COLUMN_SEPARATOR;
 
 			for (String var : cropNSoilLables) {
 				outputValues.put(var, "");
 				var = var.replaceAll(",", "");
-				var = var.replaceAll(SummaryRun.LINE_SEPARATOR, "");
-				head += var + SummaryRun.LINE_SEPARATOR;
+				var = var.replaceAll(SummaryRun.COLUMN_SEPARATOR, "");
+				head += var + SummaryRun.COLUMN_SEPARATOR;
 			}
 
 			for (Variable var : indexFileA.keySet()) {
 				outputValues.put(SummaryRun.MEASURED_PREFIX + var.getName(), "");
 				outputValues.put(SummaryRun.SIMULATED_PREFIX + var.getName(), "");
-				head += SummaryRun.MEASURED_PREFIX + var.getName() + SummaryRun.LINE_SEPARATOR;
-				head += SummaryRun.SIMULATED_PREFIX + var.getName() + SummaryRun.LINE_SEPARATOR;
+				head += SummaryRun.MEASURED_PREFIX + var.getName() + SummaryRun.COLUMN_SEPARATOR;
+				head += SummaryRun.SIMULATED_PREFIX + var.getName() + SummaryRun.COLUMN_SEPARATOR;
 			}
 
 			CSVwriter.write(head);
@@ -243,6 +243,7 @@ public class OverviewWorker {
 		String line = "";
 		fileSection flag = fileSection.INIT;
 		int treatment = 0;
+		int run = 0;
 
 		try (Scanner reader = new Scanner(cultivarOutput)) {
 
@@ -251,13 +252,18 @@ public class OverviewWorker {
 
 				switch (flag) {
 				case INIT: {
-					if (line.contains("*RUN")) { // to detect each single run of a treatment
-						treatment = Integer.parseInt(line.substring(6, 10).replaceAll(" ", ""));
-						// to print experiment run ID and the treatment
+					if (line.contains("*RUN")) { // to detect each single run
+						run = Integer.parseInt(line.substring(6, 10).replaceAll(" ", ""));
+						// to print candidate ID and the run
+						cadena = (new File(cultivarOutput.getParent())).getName() + SummaryRun.COLUMN_SEPARATOR + run + SummaryRun.COLUMN_SEPARATOR;
 						for (String key : outputValues.keySet()) {
-							cadena = (new File(cultivarOutput.getParent())).getName() + SummaryRun.LINE_SEPARATOR + treatment + SummaryRun.LINE_SEPARATOR;
 							outputValues.put(key, ""); // clear the previous values to recycle the Map
 						}
+					}
+					if (line.contains("TREATMENT")) { // to detect each single treatment of a run
+						treatment = Integer.parseInt(line.substring(11, 15).replaceAll(" ", ""));
+						// to print experiment treatment
+						cadena += treatment + SummaryRun.COLUMN_SEPARATOR;
 					}
 					if (line.contains("*SIMULATED CROP AND SOIL STATUS AT MAIN DEVELOPMENT STAGES")) { // detect section
 						flag = fileSection.CROP_N_SOIL;
@@ -293,7 +299,7 @@ public class OverviewWorker {
 					if (line.contains("----------------------------------------------------------------------------------------------------------------------------------------------------------------")) {
 						flag = fileSection.END;
 						for (String key : outputValues.keySet()) {
-							cadena += outputValues.get(key) + SummaryRun.LINE_SEPARATOR;
+							cadena += outputValues.get(key) + SummaryRun.COLUMN_SEPARATOR;
 						}
 						runsOutput.add(cadena);
 					}

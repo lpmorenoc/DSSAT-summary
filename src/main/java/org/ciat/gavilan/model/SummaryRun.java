@@ -7,7 +7,7 @@ import org.ciat.gavilan.control.App;
 
 public class SummaryRun {
 
-	public static final String LINE_SEPARATOR = "\t";
+	public static final String COLUMN_SEPARATOR = "\t";
 	public static final String PATH_SEPARATOR = "\\";
 	public static final String CANDIDATE_LABEL = "run";
 	public static final String DATE_LABEL = "date";
