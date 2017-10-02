@@ -1,1 +1,0 @@
-del eval-part*.log
