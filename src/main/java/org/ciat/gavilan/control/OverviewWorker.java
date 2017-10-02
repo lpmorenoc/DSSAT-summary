@@ -65,7 +65,7 @@ public class OverviewWorker {
 				head += var + SummaryRun.LINE_SEPARATOR;
 			}
 
-			for (Variable var : growthLables.keySet()) {
+			for (Variable var : indexFileA.keySet()) {
 				outputValues.put(SummaryRun.MEASURED_PREFIX + var.getName(), "");
 				outputValues.put(SummaryRun.SIMULATED_PREFIX + var.getName(), "");
 				head += SummaryRun.MEASURED_PREFIX + var.getName() + SummaryRun.LINE_SEPARATOR;
@@ -167,8 +167,6 @@ public class OverviewWorker {
 			growthLables.put(var, "Tops N at maturity");
 			var = new Variable("LAIX");
 			growthLables.put(var, "Leaf area index, maximum ");
-			
-			
 
 		}
 
@@ -177,6 +175,7 @@ public class OverviewWorker {
 			cropNSoilLables.add("End Juveni");
 			cropNSoilLables.add("Floral Ini");
 			cropNSoilLables.add("Silkin");
+			cropNSoilLables.add("Beg Gr Fil");
 			cropNSoilLables.add("End Gr Fil");
 			cropNSoilLables.add("Maturity");
 			cropNSoilLables.add("Harvest");
@@ -282,9 +281,11 @@ public class OverviewWorker {
 					for (Variable var : indexFileA.keySet()) {
 						// if contains the string that corresponds to the variable
 						if (!line.isEmpty() && line.contains(growthLables.get(var))) {
-							outputValues.put(SummaryRun.MEASURED_PREFIX + var.getName(), treatments.get(treatment).getMeasurements().get(NO_DATE).getValues().get(var).doubleValue() + "");
-							// get simulated value
-							outputValues.put(SummaryRun.SIMULATED_PREFIX + var.getName(), line.substring(57, 64));
+							if (treatments.get(treatment) != null) {
+								outputValues.put(SummaryRun.MEASURED_PREFIX + var.getName(), treatments.get(treatment).getMeasurements().get(NO_DATE).getValues().get(var).doubleValue() + "");
+								// get simulated value
+								outputValues.put(SummaryRun.SIMULATED_PREFIX + var.getName(), line.substring(57, 64));
+							}
 						}
 
 					}
@@ -367,7 +368,7 @@ public class OverviewWorker {
 								if (growthLables.containsKey(var)) {
 									indexFileA.put(var, Integer.valueOf(i));
 								} else {
-									App.log.warning("The variable '" + var + "' is not an output in the OVERVIEW.OUT, please check this name in your file T");
+									App.log.warning("The variable '" + var + "' is not an output in the OVERVIEW.OUT, please check this name in your file A");
 								}
 							
 							}
