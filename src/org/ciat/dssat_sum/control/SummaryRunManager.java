@@ -17,7 +17,7 @@ import java.util.Scanner;
 public class SummaryRunManager {
 
 	private String separator = "\t";
-	private String model = "CSCGR046 - Cassava";
+	private String model = "CSYCA046 - Cassava";
 	private Map<String, String> outputVarsValues = new LinkedHashMap<>();;
 	private List<String> growthVariables;
 	private List<String> cropNSoilVariables;
@@ -36,15 +36,16 @@ public class SummaryRunManager {
 
 		populateVariables();
 
+
+
 		PrintWriter pwriter;
 		BufferedWriter bwriter;
 		try {
 			long yourmilliseconds = System.currentTimeMillis();
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");    
 			Date resultdate = new Date(yourmilliseconds);
-
-			File master = new File("summary_" + sdf.format(resultdate) + ".csv");
-			System.out.println(master.getAbsolutePath());
+			
+			File master = new File("summary_"+ sdf.format(resultdate) + ".csv");
 			pwriter = new PrintWriter(master);
 			bwriter = new BufferedWriter(pwriter);
 			String head = "Corrida No" + separator + "TR" + separator;
@@ -69,42 +70,25 @@ public class SummaryRunManager {
 			bwriter.newLine();
 			boolean flagFile = true;
 			boolean flagFolder = true;
+			for (int folder = 0; flagFolder & flagFile; folder++) {
+				File bigFolder = new File(folder + "\\");
+				if (bigFolder.exists()) {
+					flagFile=false;
+					for (File subFolder:bigFolder.listFiles()) {
 
-			if (model.equals("CSCGR046 - Cassava  ")) {
-
-				List<File> files = this.getCassavaOverviewFiles();
-
-				for (File cultivarOutput : files) {
-					for (String cadena : getCultivarVariables(cultivarOutput)) {
-						bwriter.write(cadena);
-						bwriter.newLine();
-					}
-					
-				}
-				bwriter.flush();
-
-			} else {
-				for (int folder = 0; flagFolder & flagFile; folder++) {
-					File bigFolder = new File(folder + "\\");
-					if (bigFolder.exists()) {
-						flagFile = false;
-						for (File subFolder : bigFolder.listFiles()) {
-
-							flagFile = true;
-							File cultivarOutput = new File(subFolder.getAbsolutePath() + "\\OVERVIEW.OUT");
-							for (String cadena : getCultivarVariables(cultivarOutput)) {
-								bwriter.write(cadena);
-								bwriter.newLine();
+						flagFile = true;
+						File cultivarOutput = new File(subFolder.getAbsolutePath()+"\\OVERVIEW.OUT");
+								for (String cadena : getCultivarVariables(cultivarOutput)) {
+									bwriter.write(cadena);
+									bwriter.newLine();
+								}
 							}
-						}
-						bwriter.flush();
+							bwriter.flush();
 
-					} else {
-						flagFolder = false;
-					}
+				} else {
+					flagFolder = false;
 				}
 			}
-
 			pwriter.close();
 			bwriter.close();
 		} catch (IOException e1) {
@@ -164,7 +148,7 @@ public class SummaryRunManager {
 		}
 			break;
 
-		case "CSCGR046 - Cassava  ": {
+		case "CSYCA046 - Cassava  ": {
 			growthVariables.add("Germination  (dap)");
 			growthVariables.add("Emergence    (dap)");
 			growthVariables.add("1stBranch    (dap)");
@@ -205,12 +189,11 @@ public class SummaryRunManager {
 	}
 
 	private String obtainModel() {
-		String model = "CSCGR046 - Cassava";
-		
-		File firstCultivarOutput = new File("//ufrc//hoogenboom//lpmorenoc//cassava_dssat//Outputs//Overview1.OUT");
+		String model = "CSYCA046 - Cassava";
+		File firstCultivarOutput =new File (((new File("0")).listFiles()[0].getAbsolutePath()+"\\OVERVIEW.OUT"));
 		Scanner reader;
 		try {
-			if (firstCultivarOutput.exists()) {
+			if(firstCultivarOutput.exists()){
 				reader = new Scanner(firstCultivarOutput);
 				String line = "";
 				fileSection flag = fileSection.INIT;
@@ -220,7 +203,7 @@ public class SummaryRunManager {
 						model = line.substring(18, 38);
 						flag = fileSection.END;
 					}
-
+	
 				}
 				reader.close();
 			}
@@ -246,25 +229,14 @@ public class SummaryRunManager {
 
 				switch (flag) {
 				case INIT: {
-					if (line.contains("*RUN")) { // to detect each single run of
-													// a treatment
+					if (line.contains("*RUN")) { // to detect each single run of a treatment
 						treatment = Integer.parseInt(line.substring(7, 10).replaceAll(" ", ""));
-						cadena = cultivarOutput.getParent() + separator + treatment + separator; // to
-																									// print
-																									// experiment
-																									// run
-																									// ID
-																									// and
-																									// the
-																									// treatment
+						cadena = cultivarOutput.getParent() + separator + treatment + separator; // to print experiment run ID and the treatment
 						for (String key : outputVarsValues.keySet()) {
-							outputVarsValues.put(key, ""); // clear the previous
-															// values to recycle
-															// the Map
+							outputVarsValues.put(key, ""); // clear the previous values to recycle the Map
 						}
 					}
-					if (line.contains("*SIMULATED CROP AND SOIL STATUS AT MAIN DEVELOPMENT STAGES")) { // detect
-																										// section
+					if (line.contains("*SIMULATED CROP AND SOIL STATUS AT MAIN DEVELOPMENT STAGES")) { // detect section
 						flag = fileSection.CROP_N_SOIL;
 					}
 				}
@@ -273,12 +245,10 @@ public class SummaryRunManager {
 
 					for (String var : cropNSoilVariables) {
 						if (line.contains(var)) {
-							outputVarsValues.put(var, line.substring(7, 12)); // get
-																				// value
+							outputVarsValues.put(var, line.substring(7, 12)); // get value
 						}
 					}
-					if (line.contains("*MAIN GROWTH AND DEVELOPMENT VARIABLES")) { // detect
-																					// section
+					if (line.contains("*MAIN GROWTH AND DEVELOPMENT VARIABLES")) { // detect section
 						flag = fileSection.GROWTH;
 					}
 				}
@@ -308,14 +278,7 @@ public class SummaryRunManager {
 					}
 				}
 				case END: {
-					if (line.contains("*DSSAT Cropping System Model")) { // detect
-																			// the
-																			// start
-																			// of
-																			// a
-																			// new
-																			// treatment
-																			// run
+					if (line.contains("*DSSAT Cropping System Model")) { // detect the start of a new treatment run
 						flag = fileSection.INIT;
 					}
 
