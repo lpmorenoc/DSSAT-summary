@@ -1,8 +1,8 @@
-package org.ciat.dssat_sum.control;
+package src.org.ciat.dssat_sum.control;
 
 import java.io.File;
 
-import org.ciat.dssat_sum.control.SummaryRunManager;
+import src.org.ciat.dssat_sum.control.SummaryRunManager;
 
 public class RunConfig {
 
