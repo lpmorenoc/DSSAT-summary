@@ -173,7 +173,7 @@ public class SummaryRunManager {
   }
 
   private String obtainModel() {
-    String model = "CSCGR046 - Cassava";
+    String model = "CSCGR047 - Cassava";
 
     File firstCultivarOutput = new File("C:\\Users\\User\\Desktop\\outputs\\Overview1.OUT");
     Scanner reader;
@@ -250,7 +250,7 @@ public class SummaryRunManager {
       }
         break;
 
-      case "CSCGR046 - Cassava  ": {
+      case "CSCGR047 - Cassava  ": {
         growthVariables.add("Germination  (dap)");
         growthVariables.add("Emergence    (dap)");
         growthVariables.add("1stBranch    (dap)");
