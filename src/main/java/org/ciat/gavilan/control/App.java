@@ -21,7 +21,7 @@ public class App {
 	public static Logger log;
 	public static Properties prop;
 	public static final String outputsFolder = "outputs//";
-	public static File config = new File("config.properties");
+	public static File config = new File("summary.properties");
 
 	public static void main(String[] args) {
 		App app = new App();

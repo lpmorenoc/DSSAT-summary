@@ -56,7 +56,7 @@ public class OverviewWorker {
 				new PrintWriter(CSV)); /* BufferedWriter JSONwriter = new BufferedWriter(new PrintWriter(JSON)) */) {
 
 			/* Building the header */
-			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.COLUMN_SEPARATOR + "RUN" + SummaryRun.COLUMN_SEPARATOR+ SummaryRun.TREATMENT_LABEL + SummaryRun.COLUMN_SEPARATOR;
+			String head = SummaryRun.CANDIDATE_LABEL + SummaryRun.COLUMN_SEPARATOR + "RUN" + SummaryRun.COLUMN_SEPARATOR + SummaryRun.TREATMENT_LABEL + SummaryRun.COLUMN_SEPARATOR;
 
 			for (String var : cropNSoilLables) {
 				outputValues.put(var, "");
@@ -199,6 +199,12 @@ public class OverviewWorker {
 			growthLables.put(var, "Leaf area index, maximum");
 			var = new Variable("HIAM");
 			growthLables.put(var, "Harvest index at maturity");
+
+		}
+			break;
+		case CASSAVA: {
+			cropNSoilLables.add("Harvest");
+
 
 		}
 			break;
@@ -376,7 +382,7 @@ public class OverviewWorker {
 								} else {
 									App.log.warning("The variable '" + var + "' is not an output in the OVERVIEW.OUT, please check this name in your file A");
 								}
-							
+
 							}
 						}
 					}
