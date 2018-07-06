@@ -87,8 +87,8 @@ public class SummaryRunManager {
           case INIT: {
             if (line.contains("*RUN")) { // to detect each single run of
               // a treatment
-              treatment = Integer.parseInt(line.substring(7, 10).replaceAll(" ", ""));
-              cadena = cultivarOutput.getParent() + separator + treatment + separator; // to
+              runnum = Integer.parseInt(line.substring(6, 10).replaceAll(" ", ""));
+              cadena = cultivarOutput.getParent() + separator + runnum + separator; // to
               // print
               // experiment
               // run
@@ -101,6 +101,17 @@ public class SummaryRunManager {
                 // values to recycle
                 // the Map
               }
+            }
+			if (line.contains(" TREATMENT")) { // to detect each single treatment
+              treatment = Integer.parseInt(line.substring(11, 14).replaceAll(" ", ""));
+              cadena += treatment + separator; // to
+              // print
+              // experiment
+              // run
+              // ID
+              // and
+              // the
+              // treatment
             }
             if (line.contains("*SIMULATED CROP AND SOIL STATUS AT MAIN DEVELOPMENT STAGES")) { // detect
               // section
@@ -310,7 +321,7 @@ public class SummaryRunManager {
       System.out.println(master.getAbsolutePath());
       pwriter = new PrintWriter(master);
       bwriter = new BufferedWriter(pwriter);
-      String head = "Corrida No" + separator + "TR" + separator;
+      String head = "Corrida No" + separator + "RUN" + separator + "TR" + separator;
 
       for (String var : cropNSoilVariables) {
         outputVarsValues.put(var, "");
