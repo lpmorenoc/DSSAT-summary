@@ -21,7 +21,7 @@ public class SummaryRunManager {
   }
 
   private String separator = "\t";
-  private String model = "CSYCA047 - Cassava";;
+  private String model = "CSYCA047 - Cassava";
   private Map<String, String> outputVarsValues = new LinkedHashMap<>();
   private List<String> growthVariables;
   private List<String> cropNSoilVariables;
@@ -35,7 +35,7 @@ public class SummaryRunManager {
    */
   public List<File> getCassavaOverviewFiles() {
     // Change the Path
-    String path = "//ufrc//hoogenboom//lpmorenoc//cassava_dssat//Outputs//";
+    String path = "//ufrc//hoogenboom//lpmorenoc//cassava_dssat//Outputs1//";
 
     String files;
     File folder = new File(path);
@@ -63,7 +63,7 @@ public class SummaryRunManager {
     List<File> filesList = new ArrayList<>();
     for (Integer integer : overviewNumbers) {
 
-      File folderOrder = new File(path + "overview" + integer + ".out");
+      File folderOrder = new File(path + "Overview" + integer + ".OUT");
       filesList.add(folderOrder);
 
     }
@@ -250,7 +250,7 @@ public class SummaryRunManager {
       }
         break;
 
-      case "CSYCA047 - Cassava  ": {
+      case "CSYCA047 - Cassava": {
         growthVariables.add("Germination  (dap)");
         growthVariables.add("Emergence    (dap)");
         growthVariables.add("1stBranch    (dap)");
@@ -333,7 +333,7 @@ public class SummaryRunManager {
       boolean flagFile = true;
       boolean flagFolder = true;
 
-      if (model.equals("CSYCA047 - Cassava  ")) {
+      if (model.equals("CSYCA047 - Cassava")) {
 
         List<File> files = this.getCassavaOverviewFiles();
 
