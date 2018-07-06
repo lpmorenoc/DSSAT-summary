@@ -25,6 +25,7 @@ public class SummaryRunManager {
   private Map<String, String> outputVarsValues = new LinkedHashMap<>();
   private List<String> growthVariables;
   private List<String> cropNSoilVariables;
+  private List<Integer> overviewNumbers;
 
   private String OBSERVED_TAG = "Observed ";;
 
@@ -40,7 +41,7 @@ public class SummaryRunManager {
     String files;
     File folder = new File(path);
     File[] listOfFiles = folder.listFiles();
-    List<Integer> overviewNumbers = new ArrayList<>();
+    overviewNumbers = new ArrayList<>();
 
     for (int i = 0; i < (listOfFiles.length); i++) {
 
@@ -347,13 +348,18 @@ public class SummaryRunManager {
       if (model.equals("CSYCA047 - Cassava")) {
 
         List<File> files = this.getCassavaOverviewFiles();
-
+        // Get the overview File number to write into the csv file
+        int i = 0;
         for (File cultivarOutput : files) {
+
+
           for (String cadena : this.getCultivarVariables(cultivarOutput)) {
             bwriter.write(cadena);
             bwriter.newLine();
           }
-
+          bwriter.write(overviewNumbers.get(i));
+          bwriter.newLine();
+          i++;
         }
         bwriter.flush();
 
