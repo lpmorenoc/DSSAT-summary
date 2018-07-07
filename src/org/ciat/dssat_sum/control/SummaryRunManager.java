@@ -103,7 +103,7 @@ public class SummaryRunManager {
                 // the Map
               }
             }
-			if (line.contains(" TREATMENT")) { // to detect each single treatment
+            if (line.contains(" TREATMENT")) { // to detect each single treatment
               treatment = Integer.parseInt(line.substring(11, 14).replaceAll(" ", ""));
               cadena += treatment + separator; // to
               // print
@@ -349,17 +349,14 @@ public class SummaryRunManager {
 
         List<File> files = this.getCassavaOverviewFiles();
         // Get the overview File number to write into the csv file
-        int i = 0;
         for (File cultivarOutput : files) {
-
-
           for (String cadena : this.getCultivarVariables(cultivarOutput)) {
             bwriter.write(cadena);
             bwriter.newLine();
           }
-          bwriter.write(overviewNumbers.get(i));
+          // Get the overview File to write into the csv file
+          bwriter.write(cultivarOutput.getName());
           bwriter.newLine();
-          i++;
         }
         bwriter.flush();
 
