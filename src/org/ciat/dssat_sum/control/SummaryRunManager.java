@@ -352,11 +352,9 @@ public class SummaryRunManager {
         for (File cultivarOutput : files) {
           for (String cadena : this.getCultivarVariables(cultivarOutput)) {
             bwriter.write(cadena);
+            bwriter.write(cultivarOutput.getName());
             bwriter.newLine();
           }
-          // Get the overview File to write into the csv file
-          bwriter.write(cultivarOutput.getName());
-          bwriter.newLine();
         }
         bwriter.flush();
 
