@@ -88,7 +88,7 @@ public class SummaryRunManager {
           case INIT: {
             if (line.contains("*RUN")) { // to detect each single run of
               // a treatment
-              int run = Integer.parseInt(line.substring(6, 10).replaceAll(" ", ""));
+              int run = Integer.parseInt(line.substring(5, 10).replaceAll(" ", ""));
               cadena = cultivarOutput.getParent() + separator + run + separator; // to
               // print
               // experiment
