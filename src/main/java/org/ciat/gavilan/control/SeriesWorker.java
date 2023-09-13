@@ -528,7 +528,7 @@ public class SeriesWorker {
 
 		}
 
-			break;
+		break;
 		case MAIZE: {
 			vars.put(new Variable("LAID"), 6);
 			vars.put(new Variable("CWAD"), 12);
@@ -538,7 +538,19 @@ public class SeriesWorker {
 			vars.put(new Variable("L#SD"), 4);
 			vars.put(new Variable("G#AD"), 13);
 		}
-			break;
+		break;
+		case CASSAVA: {
+			vars.put(new Variable("LAID"), 11);
+			vars.put(new Variable("CWAD"), 17);
+			vars.put(new Variable("LWAD"), 18);
+			vars.put(new Variable("HIAD"), 21);
+			vars.put(new Variable("L#SD"), 7);
+			vars.put(new Variable("TWAD"), 14);
+			vars.put(new Variable("STWAD"), 13);
+			vars.put(new Variable("HWAD"), 20);
+			vars.put(new Variable("GSTD"), 6);
+		}
+		break;
 		default: {
 			App.log.warning("Crop not configurated for plantgro: " + run.getModel());
 		}

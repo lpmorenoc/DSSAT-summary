@@ -1,7 +1,7 @@
 package org.ciat.gavilan.model;
 
 public enum CropCode {
-	BEAN, MAIZE;
+	BEAN, MAIZE, CASSAVA;
 
 	public static CropCode getModelCode(String name) {
 		switch (name) {
@@ -9,7 +9,10 @@ public enum CropCode {
 			return CropCode.BEAN;
 		case "MZ":
 			return CropCode.MAIZE;
+		case "CS":
+			return CropCode.CASSAVA;
 		}
+		
 		return null;
 	}
 
